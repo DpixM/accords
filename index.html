@@ -111,7 +111,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v3.0</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v3.1</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -132,7 +132,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   <div class="tile dis"><span class="ic">📜</span><div><b>Tabs</b><span>Créer, importer, et la tab avance quand tu joues</span></div><span class="soon">V4</span></div>
   <button class="tile" data-go="settings"><span class="ic">⚙️</span><div><b>Réglages</b><span>Sévérité, sons</span></div></button>
   <p class="hint" id="weakLine"></p>
-  <p class="ver" style="text-align:center">v3.0</p>
+  <p class="ver" style="text-align:center">v3.1</p>
 </section>
 
 <!-- REVISION -->
@@ -189,9 +189,10 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 <!-- ARPEGES : SETUP -->
 <section class="screen" id="s-arSetup">
   <header><button class="back" data-go="hub">‹</button><h1>Arpèges &amp; sweep</h1></header>
-  <div class="card"><p class="lbl">Type</p><div class="seg" id="arType"><button data-v="0">Accord en arpège</button><button data-v="1" id="arSweepBtn">Sweep picking</button></div>
+  <div class="card"><p class="lbl">Type</p><div class="seg" id="arType"><button data-v="0">Accord en arpège</button><button data-v="1" id="arSweepBtn">Sweep</button><button data-v="2" id="arExBtn">Exercices sweep</button></div>
     <p class="hint" id="arHint" style="margin-top:10px"></p></div>
   <div class="card" id="arChordCard"><p class="lbl">Accord</p><div class="chips sm" id="arChord"></div></div>
+  <div class="card" id="arExCard"><p class="lbl">Exercice</p><div id="arEx"></div><p class="hint" id="arExDesc" style="margin-top:10px"></p><button class="big sec" id="arExTempo" style="margin-top:8px">Mettre le tempo conseillé</button></div>
   <div class="card" id="arSweepCard"><p class="lbl">Forme</p><div class="chips sm" id="arShape"></div><p class="lbl" style="margin-top:12px">Tonalité</p><div class="chips sm" id="arRoot"></div></div>
   <div class="card"><p class="lbl">Aperçu</p><div class="fb" id="arPrev"></div></div>
   <div class="seqopts" data-for="ar"></div>
@@ -378,7 +379,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 </div>
 <script>
 'use strict';
-const VERSION='v3.0';
+const VERSION='v3.1';
 
 /* ===================== DONNÉES ===================== */
 const PC_EN=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
@@ -1150,6 +1151,7 @@ const SCALES=[
   {fr:'Mineure',iv:[0,2,3,5,7,8,10],w:[-1,3]},
   {fr:'Blues',iv:[0,3,5,6,7,10],w:[0,3]},
 ];
+function posList(n){const list=[],map=[],key={};n.forEach((x,k)=>{const id=x.s+':'+x.f;if(key[id]==null){key[id]=list.length;list.push(x);}map[k]=key[id];});return {list,map};}
 function upDown(a){return a.concat(a.slice(0,-1).reverse());}
 function genScale(root,sc){
   const inst=I(),ls=LOWSTR[cfg.inst];let R=((root-inst.open[ls])%12+12)%12;if(R+sc.w[0]<0)R+=12;
@@ -1166,6 +1168,29 @@ const SWEEPS=[
   {fr:'Mineur 5 cordes',q:'m',base:1,sh:[[1,0],[2,2],[3,2],[4,1],[5,0],[5,5]]},
   {fr:'Majeur 5 cordes',q:'',base:1,sh:[[1,0],[2,-1],[3,-3],[4,-2],[5,-3],[5,0]]},
 ];
+/* Pack d'exercices de sweep ORIGINAUX (techniques classiques, pas des morceaux).
+   Chaque note : [corde (0 = Mi grave … 5 = Mi aigu), case, technique] ; h = hammer-on, p = pull-off, sl = slide */
+const EX=[
+ {fr:'1 · Em 3 cordes en boucle',desc:'Le mouvement de base : un seul coup vers le bas sur 3 cordes, puis vers le haut. Étouffe chaque corde juste après.',bpm:60,npb:2,rep:4,
+  cell:[[3,9],[4,8],[5,7],[5,12],[5,7],[4,8]]},
+ {fr:'2 · Am → G → F → E (3 cordes)',desc:'Changer de forme sans t\'arrêter. Mineur, puis 3 accords majeurs qui descendent.',bpm:50,npb:2,rep:2,
+  cell:[[3,14],[4,13],[5,12],[5,17],[5,12],[4,13], [3,12],[4,12],[5,10],[5,15],[5,10],[4,12], [3,10],[4,10],[5,8],[5,13],[5,8],[4,10], [3,9],[4,9],[5,7],[5,12],[5,7],[4,9]]},
+ {fr:'3 · Em 5 cordes',desc:'La grande forme : 5 cordes vers le bas d\'un seul mouvement, une note sur la corde aiguë, puis tout remonter.',bpm:50,npb:3,rep:3,
+  cell:[[1,7],[2,9],[3,9],[4,8],[5,7],[5,12],[5,7],[4,8],[3,9],[2,9]]},
+ {fr:'4 · Dm 5 cordes : départ en legato + roulé en haut',desc:'Tu attaques la corde de La avec un hammer-on, tu balaies, et en haut tu fais un roulé slide / hammer / pull-off au lieu d\'un aller-retour au médiator. C\'est la technique « metal » moderne.',bpm:45,npb:3,rep:3,
+  cell:[[1,5],[1,8,'h'],[2,7],[3,7],[4,6],[5,5],[5,10,'sl'],[5,13,'h'],[5,10,'p'],[5,5,'sl'],[4,6],[3,7],[2,7]]},
+ {fr:'5 · Bb → C → A (5 cordes, majeur)',desc:'Trois formes majeures à enchaîner : le vrai travail, c\'est le déplacement de la main gauche entre les formes.',bpm:45,npb:3,rep:2,
+  cell:[[1,13],[2,12],[3,10],[4,11],[5,10],[5,13],[5,10],[4,11],[3,10],[2,12], [1,15],[2,14],[3,12],[4,13],[5,12],[5,15],[5,12],[4,13],[3,12],[2,14], [1,12],[2,11],[3,9],[4,10],[5,9],[5,12],[5,9],[4,10],[3,9],[2,11]]},
+ {fr:'6 · Arpège diminué qui monte de 3 en 3',desc:'La même petite forme de 3 notes, décalée de 3 cases à chaque fois. Très symétrique : parfait pour monter en vitesse.',bpm:60,npb:3,rep:2,
+  cell:[[3,6],[4,5],[5,3],[3,9],[4,8],[5,6],[3,12],[4,11],[5,9],[3,15],[4,14],[5,12]]},
+ {fr:'7 · Mineur / majeur en triolets (Em ↔ C)',desc:'Deux formes de 5 cordes qui alternent, en triolets : chaque coup de métronome = 3 notes.',bpm:40,npb:3,rep:2,
+  cell:[[1,7],[2,9],[3,9],[4,8],[5,7],[5,12],[5,7],[4,8],[3,9],[2,9],[1,7],[1,3,'sl'],[2,2],[3,0],[4,1],[5,0],[5,3],[5,0],[4,1],[3,0],[2,2],[1,3],[1,7,'sl']]},
+];
+function genEx(ex){
+  const inst=I();let ns=[];for(let r=0;r<ex.rep;r++) for(const [s,f,t] of ex.cell) ns.push({s,f,m:inst.open[s]+f,t});
+  ns=ns.filter((x,i)=>i===0||x.m!==ns[i-1].m||x.s!==ns[i-1].s);
+  const fs=ns.map(n=>n.f);return {notes:ns,fmin:Math.max(0,Math.min(...fs)-1),fmax:Math.max(...fs)+1,custom:true};
+}
 function genSweep(root,sw){
   const inst=I();const rel=sw.sh.map(x=>x[1]);let R=((root-inst.open[sw.base])%12+12)%12;
   while(R+Math.min(...rel)<1) R+=12; if(R+Math.max(...rel)>20&&R-12+Math.min(...rel)>=1) R-=12;
@@ -1208,15 +1233,23 @@ $('scStart').onclick=()=>{const st=scState();const g=genScale(st.root,SCALES[st.
 /* arpèges setup */
 function arState(){return Object.assign({t:0,chord:null,shape:0,root:9},cfg.ar||{});}
 function arGen(st){
+  if(st.t===2&&cfg.inst==='guitar') return genEx(EX[st.ex||0]);
   if(st.t===1&&cfg.inst==='guitar') return genSweep(st.root,SWEEPS[st.shape]);
   const c=I().chords.find(x=>x.key===st.chord)||I().chords[0];st.chord=c.key;return genArp(c);
 }
 function renderArSetup(){
   const st=arState();cfg.ar=st;if(cfg.inst!=='guitar') st.t=0;
-  $('arSweepBtn').style.display=cfg.inst==='guitar'?'':'none';
+  $('arSweepBtn').style.display=$('arExBtn').style.display=cfg.inst==='guitar'?'':'none';
   segInit('arType',st.t,v=>{st.t=+v;saveCfg();renderArSetup();});
   $('arHint').innerHTML=st.t?'Le <b>sweep</b> : un seul mouvement de médiator qui « balaie » les cordes (vers le bas en montant, vers le haut en descendant), <b>une note par corde</b>, et tu étouffes chaque corde juste après l\'avoir jouée. Commence en mode Libre, très lentement.':'Tu joues les notes de l\'accord <b>une corde à la fois</b>, de la plus grave à la plus aiguë, puis tu redescends. Garde l\'accord posé.';
-  $('arChordCard').style.display=st.t?'none':'';$('arSweepCard').style.display=st.t?'':'none';
+  $('arChordCard').style.display=st.t?'none':'';$('arSweepCard').style.display=st.t===1?'':'none';$('arExCard').style.display=st.t===2?'':'none';
+  if(st.t===2){const e=EX[st.ex||0];
+    $('arHint').innerHTML='Des exercices <b>originaux</b>, du plus simple au plus dur, avec les techniques du sweep moderne (legato, roulés en haut, changements de forme).';
+    $('arEx').innerHTML=EX.map((x,i)=>`<button class="tile" style="padding:12px;margin-bottom:8px;${(st.ex||0)===i?'outline:2px solid var(--acc)':''}" data-i="${i}"><div><b style="font-size:16px">${x.fr}</b><span>${x.bpm} BPM conseillé · ${x.npb===3?'triolets':x.npb+' notes/temps'}</span></div></button>`).join('');
+    $('arEx').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{st.ex=+b.dataset.i;saveCfg();renderArSetup();});
+    $('arExDesc').textContent=e.desc+' (h = hammer-on, p = pull-off, sl = slide)';
+    $('arExTempo').onclick=()=>{cfg.ar_=Object.assign(cfg.ar_||{},{mode:1,bpm:e.bpm,npb:e.npb});saveCfg();renderSeqOpts('ar');};
+  }
   $('arChord').innerHTML=I().chords.map(c=>`<button class="chip ${st.chord===c.key?'on':''}" data-k="${c.key}">${c.n}</button>`).join('');
   $('arChord').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{st.chord=b.dataset.k;saveCfg();renderArSetup();});
   $('arShape').innerHTML=SWEEPS.map((s,i)=>`<button class="chip ${st.shape===i?'on':''}" data-i="${i}">${s.fr}</button>`).join('');
@@ -1224,11 +1257,12 @@ function renderArSetup(){
   $('arRoot').innerHTML=PC_EN.map((n,i)=>`<button class="chip ${st.root===i?'on':''}" data-i="${i}">${n}${SWEEPS[st.shape].q}</button>`).join('');
   $('arRoot').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{st.root=+b.dataset.i;saveCfg();renderArSetup();});
   const g=arGen(st);
-  $('arPrev').innerHTML=fretboard({fmin:g.fmin,fmax:g.fmax,dots:seqDots(g,0,null,null).map((d,i)=>Object.assign(d,{label:i+1}))});
+  const up=posList(g.notes);
+  $('arPrev').innerHTML=fretboard({fmin:g.fmin,fmax:g.fmax,dots:up.list.map((d,i)=>({s:d.s,f:d.f,label:i+1,st:'todo'}))});
   renderSeqOpts('ar');
 }
 $('arStart').onclick=()=>{const st=arState();const g=arGen(st);
-  const title=st.t&&cfg.inst==='guitar'?'Sweep '+PC_EN[st.root]+SWEEPS[st.shape].q:'Arpège '+(I().chords.find(x=>x.key===st.chord)||{}).n;
+  const title=st.t===2&&cfg.inst==='guitar'?'Exercice '+EX[st.ex||0].fr.split(' · ')[0]:st.t&&cfg.inst==='guitar'?'Sweep '+PC_EN[st.root]+SWEEPS[st.shape].q:'Arpège '+(I().chords.find(x=>x.key===st.chord)||{}).n;
   startSeq({title,g,key:'ar',back:'arSetup',root:null});};
 
 /* moteur de séquence */
@@ -1236,7 +1270,7 @@ let SQ=null;
 async function startSeq(o){
   rhStop();
   const st=cfg[o.key+'_']||{mode:0,bpm:60,npb:1};
-  SQ=Object.assign(o,{idx:0,hits:new Array(o.g.notes.length).fill(null),mode:st.mode,bpm:st.bpm,npb:st.npb,stop:false,t0:0,cur:-1,startTs:0});
+  SQ=Object.assign(o,{pos:null,idx:0,hits:new Array(o.g.notes.length).fill(null),mode:st.mode,bpm:st.bpm,npb:st.npb,stop:false,t0:0,cur:-1,startTs:0});
   go('seq');$('qTitle').textContent=o.title;$('qRes').style.display='none';$('qCard').style.display='';
   $('qTimebar').style.display=SQ.mode?'':'none';
   seqRender();
@@ -1250,14 +1284,15 @@ $('qAgain').onclick=()=>{if(SQ)startSeq(SQ);};
 $('qFaster').onclick=()=>{if(!SQ)return;const st=cfg[SQ.key+'_'];st.bpm=Math.min(200,st.bpm+5);saveCfg();startSeq(SQ);};
 function seqRender(){
   const g=SQ.g,n=g.notes,i=Math.min(SQ.idx,n.length-1);
-  // on affiche la position (montée) ; la note courante en orange, celles réussies en vert
-  const half=Math.ceil(n.length/2);
-  const dots=n.slice(0,half).map((x,k)=>({s:x.s,f:x.f,label:nName(x.m),st:(SQ.root!=null&&x.m%12===SQ.root)?'root':'todo'}));
-  const pos=k=>k<half?k:n.length-1-k;
-  for(let k=0;k<n.length;k++){if(SQ.hits[k]===true)dots[pos(k)].st='done';if(SQ.hits[k]===false)dots[pos(k)].st='miss';}
-  if(SQ.idx<n.length) dots[pos(i)].st='cur';
+  // chaque case n'est dessinée qu'une fois ; la note courante en orange, celles réussies en vert
+  const P=SQ.pos||(SQ.pos=posList(n));
+  const dots=P.list.map(x=>({s:x.s,f:x.f,label:nName(x.m),st:(SQ.root!=null&&x.m%12===SQ.root)?'root':'todo'}));
+  for(let k=0;k<Math.min(SQ.idx,n.length);k++){if(SQ.hits[k]===true)dots[P.map[k]].st='done';if(SQ.hits[k]===false)dots[P.map[k]].st='miss';}
+  if(SQ.idx<n.length) dots[P.map[i]].st='cur';
   $('qFb').innerHTML=fretboard({fmin:g.fmin,fmax:g.fmax,dots});
-  const c=n[i];$('qNote').textContent=nName(c.m);$('qWhere').textContent='corde '+strFull(c.s)+' · case '+c.f+(i>=half?' · ⬇ descente':' · ⬆ montée');
+  const TN={h:' · hammer-on',p:' · pull-off',sl:' · slide'};
+  const nx=n[i+1];
+  const c=n[i];$('qNote').textContent=nName(c.m);$('qWhere').textContent='corde '+strFull(c.s)+' · case '+c.f+(TN[c.t]||'')+(g.custom?'':(nx&&nx.m<c.m?' · ⬇':' · ⬆'));
   $('qCount').textContent=SQ.hits.filter(x=>x===true).length+' / '+n.length;
   $('qProg').textContent='Note '+(i+1)+' / '+n.length;
 }
