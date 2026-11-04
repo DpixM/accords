@@ -103,7 +103,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v1.3</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v1.4</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -122,7 +122,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   <div class="tile dis"><span class="ic">👂</span><div><b>Oreille</b><span>Devine ce que l'app joue</span></div><span class="soon">V4</span></div>
   <button class="tile" data-go="settings"><span class="ic">⚙️</span><div><b>Réglages</b><span>Sévérité, sons</span></div></button>
   <p class="hint" id="weakLine"></p>
-  <p class="ver" style="text-align:center">v1.3</p>
+  <p class="ver" style="text-align:center">v1.4</p>
 </section>
 
 <!-- REGLAGES -->
@@ -137,8 +137,8 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   </div>
   <div class="card">
     <p class="lbl">Sensibilité du micro</p>
-    <div class="sens" style="margin:0"><button data-sens="-1">−</button><span><b class="sensV">7</b>/10</span><button data-sens="1">+</button></div>
-    <p class="hint" style="margin-top:10px">Plus haut = il t'entend même si tu grattes doucement (mais il entend aussi plus le bruit autour). La barre devient verte quand elle dépasse le trait blanc.</p>
+    <div class="sens" style="margin:0"><button data-sens="-1">−</button><span><b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button></div>
+    <p class="hint" style="margin-top:10px">Plus haut = il t'entend même si tu grattes doucement (mais il entend aussi plus le bruit autour). La barre devient verte quand elle dépasse le trait blanc.<br>🤫 = je réécoute le bruit de la pièce pendant 1,5 s (ne joue pas). À refaire si le bruit change (télé, ventilo…).</p>
   </div>
   <div class="card">
     <p class="lbl">Mode du micro</p>
@@ -168,7 +168,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="tfr" id="tFr">Joue une corde à vide</div>
     <div class="gauge"><div class="scale"></div><div class="mid"></div><div class="ndl" id="tNdl"></div></div>
     <div class="tcents" id="tCents"></div>
-    <div class="meter"><i id="tMeter"></i><b></b></div><div class="diagline" id="dT"></div><div class="sens"><button data-sens="-1">−</button><span>Sensibilité micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button></div>
+    <div class="meter"><i id="tMeter"></i><b></b></div><div class="diagline" id="dT"></div><div class="sens"><button data-sens="-1">−</button><span>Sensibilité micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button></div>
     <div class="strings" id="tStrings"></div>
   </div>
   <p class="hint">Aiguille à gauche = trop grave (serre la corde). À droite = trop aigu (desserre). Au centre en vert = parfait.</p>
@@ -202,7 +202,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="diag" id="pDiag"></div>
     <div class="notes" id="pNotes"></div>
     <div class="status" id="pStatus">J'écoute…</div>
-    <div class="meter"><i id="pMeter"></i><b></b></div><div class="diagline" id="dP"></div><div class="sens"><button data-sens="-1">−</button><span>Sensibilité micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button></div>
+    <div class="meter"><i id="pMeter"></i><b></b></div><div class="diagline" id="dP"></div><div class="sens"><button data-sens="-1">−</button><span>Sensibilité micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button></div>
   </div>
   <div class="row"><button class="big sec" id="pSkip">Passer ›</button></div>
 </section>
@@ -243,7 +243,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="chordFr" id="cFr"></div>
     <div class="diag" id="cDiag"></div>
     <div class="notes" id="cNotes"></div>
-    <div class="meter"><i id="cMeter"></i><b></b></div><div class="diagline" id="dC"></div><div class="sens"><button data-sens="-1">−</button><span>Sensibilité micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button></div>
+    <div class="meter"><i id="cMeter"></i><b></b></div><div class="diagline" id="dC"></div><div class="sens"><button data-sens="-1">−</button><span>Sensibilité micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button></div>
   </div>
   <div class="next">Ensuite : <b id="cNext">–</b></div>
 </section>
@@ -260,7 +260,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 
 <script>
 'use strict';
-const VERSION='v1.3';
+const VERSION='v1.4';
 
 /* ===================== DONNÉES ===================== */
 const PC_EN=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
@@ -362,13 +362,43 @@ function renderSettings(){
 $('resetStats').onclick=()=>{store.set('stats_'+cfg.inst,{});$('resetStats').textContent='Stats effacées ✓';};
 
 /* ===================== AUDIO ===================== */
-const A={ctx:null,an:null,stream:null,fd:null,td:null,noise:-80,thr:-75,dead:0};
+const A={ctx:null,an:null,stream:null,fd:null,td:null,noise:-80,thr:-75,dead:0,cal:null,nspec:null,slow:-100,lastStrum:-1e9};
 function ensureCtx(){
   try{if(!A.ctx) A.ctx=new (window.AudioContext||window.webkitAudioContext)();
     if(A.ctx.state!=='running') A.ctx.resume().catch(()=>{});}catch(e){}
   const o=document.getElementById('tapOv');if(o&&A.ctx&&A.ctx.state==='running') o.style.display='none';
 }
 ['pointerdown','touchend','click'].forEach(ev=>document.addEventListener(ev,ensureCtx,true));
+/* --- mesure du bruit de la pièce (on ne joue pas pendant 1,5 s) --- */
+function startCal(tries){A.cal={t0:performance.now(),n:0,sum:null,mx:null,tries:tries||0,last:null};}
+function calStep(){
+  if(!A.cal||!A.an) return false;
+  const C=A.cal;const db=levelDb();A.an.getFloatFrequencyData(A.fd);
+  const hi=Math.ceil(1600/(A.ctx.sampleRate/A.an.fftSize))+4;
+  if(db<-110&&performance.now()-C.t0<4000) return true; // micro pas encore prêt
+  if(!C.sum||db<C.minDb-8){C.sum=new Float32Array(hi);C.minDb=db;C.n=0;}
+  if(db<C.minDb) C.minDb=db;
+  if(C.maxDb==null||db>C.maxDb) C.maxDb=db;
+  // on ne garde que les moments calmes (si tu grattes pendant la mesure, ces moments sont ignorés)
+  if(db<=C.minDb+8){for(let i=0;i<hi;i++) C.sum[i]+=Math.max(A.fd[i],-130);C.n++;}
+  const el=performance.now()-C.t0;
+  if((el>1000&&C.n>=8)||el>4000){
+    A.calWarn=C.maxDb-C.minDb>12;
+    if(C.n>=4&&!A.calWarn){const base=new Float32Array(hi);for(let i=0;i<hi;i++) base[i]=C.sum[i]/C.n+3;
+      const ns=new Float32Array(hi);for(let i=0;i<hi;i++){let m=-200;for(let j=Math.max(0,i-3);j<=Math.min(hi-1,i+3);j++) if(base[j]>m)m=base[j];ns[i]=m;}
+      A.nspec=ns;A.noise=C.minDb;}
+    A.cal=null;
+  }
+  return true;
+}
+/* --- détection du coup de gratte (attaque) --- */
+function strumCheck(db,ts){
+  const td=A.td,N=td.length;const en=(a,b)=>{let x=0;for(let i=a;i<b;i++)x+=td[i]*td[i];return x/(b-a);};
+  const now=en(N-1024,N),before=en(N-8192,N-4096);
+  if(now>before*2&&db>A.thr) A.lastStrum=ts;
+  return ts-A.lastStrum<2500;
+}
+document.addEventListener('click',e=>{if(e.target.closest('[data-cal]')) startCal();});
 function resetMic(){try{if(A.stream)A.stream.getTracks().forEach(t=>t.stop());}catch(e){}A.stream=null;A.an=null;A.noise=-80;}
 function showSens(){document.querySelectorAll('.sensV').forEach(e=>e.textContent=cfg.sens);}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-sens]');if(!b)return;cfg.sens=Math.max(1,Math.min(10,cfg.sens+(+b.dataset.sens)));saveCfg();showSens();});
@@ -383,6 +413,7 @@ async function mic(errEl){
       A.an.minDecibels=-130;A.an.maxDecibels=0;
       src.connect(A.an);
       A.fd=new Float32Array(A.an.frequencyBinCount);A.td=new Float32Array(A.an.fftSize);
+      startCal();
     }
     if(A.ctx.state!=='running'){try{await Promise.race([A.ctx.resume(),new Promise(r=>setTimeout(r,400))]);}catch(e){}}
     if(errEl) errEl.style.display='none';
@@ -425,7 +456,7 @@ function diag(id,db,on,ch,extra){
   if(db<-115) A.dead++; else A.dead=0;
   let notes='';
   if(ch&&on){const l=[...Array(12).keys()].filter(p=>ch[p]>0.35).sort((a,b)=>ch[b]-ch[a]).slice(0,5);notes=' · notes : '+(l.map(p=>PC_FR[p]).join(' ')||'–');}
-  let msg=(st==='running'?'🎤 micro OK':'⛔ son en pause ('+st+')')+' · '+Math.round(A.ctx.sampleRate/100)/10+' kHz · son '+Math.round(db)+' dB / seuil '+Math.round(A.thr)+' dB · '+(on?'🟢 je t\'entends':'⚪ trop faible')+notes+(extra||'');
+  let msg=(st==='running'?'🎤 micro OK':'⛔ son en pause ('+st+')')+' · '+Math.round(A.ctx.sampleRate/100)/10+' kHz · son '+Math.round(db)+' dB / seuil '+Math.round(A.thr)+' dB · '+(on?'🟢 je t\'entends':'⚪ j\'attends que tu grattes')+(A.nspec?' · bruit mesuré ✓':(A.calWarn?' · ⚠️ j\'ai entendu jouer pendant la mesure : touche 🤫 quand c\'est calme':''))+notes+(extra||'');
   if(A.dead>60) msg='⚠️ Le micro ne reçoit RIEN (silence total). Ferme Safari complètement (balaye vers le haut) et rouvre la page. '+msg;
   el.textContent=msg;
 }
@@ -446,6 +477,7 @@ function chroma(){
     const v=db[i];
     if(v<=db[i-1]||v<db[i+1]) continue;
     if(v<fl[i]+(14-cfg.sens)||v<mx-(34+cfg.sens)) continue;
+    if(A.nspec&&i<A.nspec.length&&v<A.nspec[i]+(17-cfg.sens)) continue;
     const a=db[i-1],b=v,cc=db[i+1];const den=a-2*b+cc;const p=den?0.5*(a-cc)/den:0;
     const f=(i+p)*bh;const m=69+12*Math.log2(f/440);const r=Math.round(m);
     if(Math.abs(m-r)>0.35) continue;
@@ -549,6 +581,7 @@ async function startTuner(){
   let hist=[];
   startLoop(()=>{
     const db=levelDb();meter($('tMeter'),db);
+    if(calStep()){$('tCents').textContent='🤫 Ne joue pas… je mesure le bruit';return;}
     const on=gate(db);diag('dT',db,on,null,tunerF?' · '+tunerF.toFixed(1)+' Hz':'');
     if(!on){return;}
     const buf=A.td.subarray(A.td.length-4096);
@@ -607,20 +640,23 @@ function showPractice(){
 }
 function nextPractice(){
   if(cfg.order){P.cur=pickNext(P.list,P.cur);} else {P.idx=(P.idx+1)%P.list.length;P.cur=P.list[P.idx];}
-  P.hold=0;resetChroma();showPractice();
+  P.hold=0;P.acc=0;resetChroma();showPractice();
 }
 function practiceTick(ts){
   const db=levelDb();meter($('pMeter'),db);
   if(P.lock){if(ts>P.lock){P.lock=0;nextPractice();}return;}
-  const on=gate(db);
-  const ch=chroma();diag('dP',db,on,ch);
-  if(!on){P.hold=0;$('pStatus').textContent='J\'écoute… gratte l\'accord';$('pStatus').style.color='';$('pNotes').innerHTML=notesHtml(P.cur);return;}
+  if(calStep()){$('pStatus').textContent='🤫 Ne joue pas… je mesure le bruit de la pièce';$('pStatus').style.color='var(--blue)';return;}
+  const on=gate(db),hit=strumCheck(db,ts);
+  const ch=chroma();diag('dP',db,on&&hit,ch);
+  if(!on||!hit){P.hold=0;P.acc=0;$('pStatus').textContent='J\'écoute… gratte l\'accord';$('pStatus').style.color='';$('pNotes').innerHTML=notesHtml(P.cur);return;}
   const res=judge(ch,P.cur);
   $('pNotes').innerHTML=notesHtml(P.cur,ch,res);strColors('pDiag',res);
-  if(res.ok){
+  const dt=P.lastTs?Math.min(120,ts-P.lastTs):50;P.lastTs=ts;
+  P.acc=Math.max(0,(P.acc||0)+(res.ok?dt:-dt*0.5));
+  if(res.ok||P.acc>0){
     if(!P.hold)P.hold=ts;
     $('pStatus').textContent='Oui… tiens-le !';$('pStatus').style.color='var(--ok)';
-    if(ts-P.hold>SEV[cfg.sev].hold){
+    if(P.acc>SEV[cfg.sev].hold){P.acc=0;
       P.done++;addStat(P.cur.key,true);ding();
       $('pStatus').textContent='✓ Bravo !';$('pCount').textContent=P.done+' ✓';
       const card=$('pCard');card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
@@ -683,7 +719,7 @@ function chronoTick(ts){
     C.nextClick+=C.beat;
   }
   const t=now-C.t0;
-  const db=levelDb();meter($('cMeter'),db);const on=gate(db);const ch=chroma();diag('dC',db,on,ch);
+  const db=levelDb();meter($('cMeter'),db);const cal=calStep();const on=gate(db)&&!cal&&strumCheck(db,ts);const ch=cal?chSm:chroma();diag('dC',db,on,ch);
   if(t<C.countIn){
     if(C.cur!==-1){C.cur=-1;showChronoChord(0);$('cProg').textContent='Prépare-toi';}
     const left=Math.max(1,4-Math.floor(Math.max(0,t)/C.beat));
@@ -696,17 +732,18 @@ function chronoTick(ts){
   if(i>=C.seq.length){finishChrono();return;}
   if(i!==C.cur){
     if(C.cur>=0) addStat(C.seq[C.cur].key,C.hit[C.cur]);
-    C.cur=i;C.hold=0;showChronoChord(i);
+    C.cur=i;C.hold=0;C.acc=0;showChronoChord(i);
   }
   const inT=(t-C.countIn)-i*C.dur;
   $('cBar').style.width=(inT/C.dur*100)+'%';
   $('cBeat').textContent='temps '+(Math.floor(inT/C.beat)+1)+' / '+cfg.beats;
   const c=C.seq[i];
   if(C.hit[i]) return;
-  if(!on){C.hold=0;$('cNotes').innerHTML=notesHtml(c);return;}
+  if(!on){C.hold=0;C.acc=0;$('cNotes').innerHTML=notesHtml(c);return;}
   const res=judge(ch,c);
   $('cNotes').innerHTML=notesHtml(c,ch,res);strColors('cDiag',res);
-  if(res.ok){if(!C.hold)C.hold=ts;if(ts-C.hold>Math.min(350,SEV[cfg.sev].hold)){C.hit[i]=true;$('cCard').style.background='rgba(52,199,123,.25)';
+  const dt=C.lastTs?Math.min(120,ts-C.lastTs):50;C.lastTs=ts;C.acc=Math.max(0,(C.acc||0)+(res.ok?dt:-dt*0.5));
+  if(res.ok||C.acc>0){if(C.acc>Math.min(350,SEV[cfg.sev].hold)){C.hit[i]=true;$('cCard').style.background='rgba(52,199,123,.25)';
       const n=C.hit.filter(Boolean).length;$('cScoreLive').textContent=n+' / '+(i+1);}}
   else C.hold=0;
   $('cScoreLive').textContent=C.hit.filter(Boolean).length+' / '+(i+1);
