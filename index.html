@@ -103,7 +103,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v1.2</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v1.3</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -122,7 +122,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   <div class="tile dis"><span class="ic">👂</span><div><b>Oreille</b><span>Devine ce que l'app joue</span></div><span class="soon">V4</span></div>
   <button class="tile" data-go="settings"><span class="ic">⚙️</span><div><b>Réglages</b><span>Sévérité, sons</span></div></button>
   <p class="hint" id="weakLine"></p>
-  <p class="ver" style="text-align:center">v1.2</p>
+  <p class="ver" style="text-align:center">v1.3</p>
 </section>
 
 <!-- REGLAGES -->
@@ -133,7 +133,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="seg" id="sevSeg">
       <button data-v="0">Cool</button><button data-v="1">Normal</button><button data-v="2">Strict</button>
     </div>
-    <p class="hint" style="margin-top:10px">Cool : il suffit que les bonnes notes soient là.<br>Normal : il faut que ce soit vraiment cet accord.<br>Strict : en plus, aucune note en trop ou étouffée.</p>
+    <p class="hint" style="margin-top:10px">Cool : il suffit que les bonnes notes soient là.<br>Normal : il faut que ce soit vraiment cet accord, sans fausse note.<br>Strict : en plus, chaque corde doit sonner (aucune étouffée) et tu dois le tenir plus longtemps.<br>Sous le schéma, les noms des cordes passent en vert quand je les entends, en rouge si une corde ne sonne pas (en Strict).</p>
   </div>
   <div class="card">
     <p class="lbl">Sensibilité du micro</p>
@@ -260,7 +260,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 
 <script>
 'use strict';
-const VERSION='v1.2';
+const VERSION='v1.3';
 
 /* ===================== DONNÉES ===================== */
 const PC_EN=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
@@ -437,7 +437,7 @@ function chroma(){
   const db=A.fd,sr=A.ctx.sampleRate,N=A.an.fftSize,bh=sr/N;
   const lo=Math.floor(70/bh),hi=Math.ceil(1500/bh),W=Math.round(25/bh);
   let mx=-200;for(let i=lo;i<=hi;i++) if(db[i]>mx) mx=db[i];
-  const c=new Float32Array(12);
+  const c=new Float32Array(12),nn=new Float32Array(128);
   // plancher local (moyenne glissante en dB)
   let sum=0,cnt=0;const fl=new Float32Array(hi+1);
   for(let i=lo-W;i<=lo+W;i++){if(i>=0){sum+=db[i];cnt++;}}
@@ -452,16 +452,19 @@ function chroma(){
     let w=Math.pow(10,(v-mx)/20); w=Math.pow(w,0.6);
     if(f>700) w*=700/f;
     c[((r%12)+12)%12]+=w;
+    const rel=Math.pow(10,(v-mx)/20);if(r>=0&&r<128&&rel>nn[r]) nn[r]=rel;
   }
+  for(let i=0;i<128;i++) noteSm[i]=noteSm[i]*0.5+nn[i]*0.5;
   let cm=0;for(const x of c) if(x>cm) cm=x;
   if(cm>0) for(let i=0;i<12;i++) c[i]/=cm;
   for(let i=0;i<12;i++) chSm[i]=chSm[i]*0.45+c[i]*0.55;
   return chSm;
 }
-function resetChroma(){chSm=new Float32Array(12);}
+let noteSm=new Float32Array(128);
+function resetChroma(){chSm=new Float32Array(12);noteSm=new Float32Array(128);}
 
 /* l'accord joué correspond-il à la cible ? */
-const SEV=[{sim:0.55,req:0.06,best:false},{sim:0.65,req:0.1,best:true},{sim:0.8,req:0.2,best:true,extra:0.45}];
+const SEV=[{sim:0.55,req:0.06,best:false,hold:250},{sim:0.68,req:0.12,best:true,wrong:0.14,hold:400},{sim:0.78,req:0.18,best:true,extra:0.45,wrong:0.1,str:0.05,hold:500}];
 function judge(ch,target){
   const P=SEV[cfg.sev];
   let best=null,bs=-1;for(const d of DICT){const s=cos(ch,d.t);if(s>bs){bs=s;best=d;}}
@@ -474,7 +477,21 @@ function judge(ch,target){
   let ok=st>=P.sim&&missing.length===0;
   if(P.best&&best.key!==target.key) ok=false;
   if(strictExtra.length) ok=false;
-  return {ok,best:best.key,bs,st,missing,extra};
+  // --- analyse note par note (avec l'octave), corde par corde ---
+  const E=target.f.map((fr,i)=>fr<0?null:I().open[i]+fr);
+  const exp=E.filter(x=>x!=null);
+  const strHeard=E.map(m=>m==null?null:(noteSm[m]>0.05||noteSm[m+12]>0.05&&m<48));
+  const wrong=[];
+  if(P.wrong) for(let m=38;m<=76;m++){
+    if(noteSm[m]<P.wrong||target.pcs.includes(m%12)) continue;
+    let ex=false;for(const e of exp){for(let k=2;k<=8;k++){if(Math.abs(m-(e+12*Math.log2(k)))<0.5){ex=true;break;}}if(ex)break;}
+    if(!ex) wrong.push(m);
+  }
+  if(wrong.length) ok=false;
+  const deadStr=[];
+  if(P.str) E.forEach((m,i)=>{if(m!=null&&noteSm[m]<(m<48?0.015:P.str)) deadStr.push(i);});
+  if(deadStr.length) ok=false;
+  return {ok,best:best.key,bs,st,missing,extra,wrong,deadStr,strHeard};
 }
 
 /* ===================== DIAGRAMMES ===================== */
@@ -489,13 +506,17 @@ function diagram(c,small){
     if(fr<0) s+=`<text x="${x}" y="${top-16}" text-anchor="middle" font-size="20" fill="#ef5350" font-weight="700">✕</text>`;
     else if(fr===0) s+=`<circle cx="${x}" cy="${top-22}" r="7" fill="none" stroke="#eef0f4" stroke-width="2.2"/>`;
     else {const y=top+(fr-0.5)*fy;s+=`<circle cx="${x}" cy="${y}" r="13" fill="#f5a524"/><text x="${x}" y="${y+6}" text-anchor="middle" font-size="17" font-weight="800" fill="#1a1200">${c.d[i]||''}</text>`;}
-    s+=`<text x="${x}" y="${H-8}" text-anchor="middle" font-size="12" fill="#9aa1b0">${inst.strNames[i]}</text>`;
+    s+=`<text class="sl" x="${x}" y="${H-8}" text-anchor="middle" font-size="13" font-weight="700" fill="#9aa1b0">${inst.strNames[i]}</text>`;
   }
   return s+'</svg>';
 }
+function strColors(id,res){
+  const els=document.querySelectorAll('#'+id+' .sl');
+  els.forEach((el,i)=>{let col='#9aa1b0';if(res&&res.strHeard[i]!=null){col=res.strHeard[i]?'#34c77b':'#9aa1b0';if(res.deadStr.includes(i))col='#ef5350';}el.setAttribute('fill',col);});
+}
 function notesHtml(c,ch,res){
   let h=c.pcs.map(p=>`<span class="note ${ch&&ch[p]>=SEV[cfg.sev].req?'ok':''}">${PC_FR[p]}</span>`).join('');
-  if(res&&res.extra.length) h+=res.extra.map(p=>`<span class="note extra">${PC_FR[p]} ?</span>`).join('');
+  if(res){const ex=new Set(res.extra);res.wrong.forEach(m=>ex.add(m%12));h+=[...ex].map(p=>`<span class="note extra">${PC_FR[p]} ?</span>`).join('');}
   return h;
 }
 
@@ -595,11 +616,11 @@ function practiceTick(ts){
   const ch=chroma();diag('dP',db,on,ch);
   if(!on){P.hold=0;$('pStatus').textContent='J\'écoute… gratte l\'accord';$('pStatus').style.color='';$('pNotes').innerHTML=notesHtml(P.cur);return;}
   const res=judge(ch,P.cur);
-  $('pNotes').innerHTML=notesHtml(P.cur,ch,res);
+  $('pNotes').innerHTML=notesHtml(P.cur,ch,res);strColors('pDiag',res);
   if(res.ok){
     if(!P.hold)P.hold=ts;
     $('pStatus').textContent='Oui… tiens-le !';$('pStatus').style.color='var(--ok)';
-    if(ts-P.hold>250){
+    if(ts-P.hold>SEV[cfg.sev].hold){
       P.done++;addStat(P.cur.key,true);ding();
       $('pStatus').textContent='✓ Bravo !';$('pCount').textContent=P.done+' ✓';
       const card=$('pCard');card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
@@ -609,6 +630,8 @@ function practiceTick(ts){
     P.hold=0;
     let msg;
     if(res.missing.length) msg='Il manque : '+res.missing.map(p=>PC_FR[p]).join(', ');
+    else if(res.wrong.length) msg='Fausse note : '+[...new Set(res.wrong.map(m=>PC_FR[m%12]))].join(', ')+' — vérifie tes doigts';
+    else if(res.deadStr.length) msg='Corde '+res.deadStr.map(i=>I().strNames[i]).join(', ')+' pas entendue (étouffée ?)';
     else if(res.extra.length) msg='Note en trop : '+res.extra.map(p=>PC_FR[p]).join(', ');
     else msg='J\'entends plutôt '+res.best.replace('Eb','D#').replace('Bb','A#');
     $('pStatus').textContent=msg;$('pStatus').style.color='var(--ko)';
@@ -682,8 +705,8 @@ function chronoTick(ts){
   if(C.hit[i]) return;
   if(!on){C.hold=0;$('cNotes').innerHTML=notesHtml(c);return;}
   const res=judge(ch,c);
-  $('cNotes').innerHTML=notesHtml(c,ch,res);
-  if(res.ok){if(!C.hold)C.hold=ts;if(ts-C.hold>250){C.hit[i]=true;$('cCard').style.background='rgba(52,199,123,.25)';
+  $('cNotes').innerHTML=notesHtml(c,ch,res);strColors('cDiag',res);
+  if(res.ok){if(!C.hold)C.hold=ts;if(ts-C.hold>Math.min(350,SEV[cfg.sev].hold)){C.hit[i]=true;$('cCard').style.background='rgba(52,199,123,.25)';
       const n=C.hit.filter(Boolean).length;$('cScoreLive').textContent=n+' / '+(i+1);}}
   else C.hold=0;
   $('cScoreLive').textContent=C.hit.filter(Boolean).length+' / '+(i+1);
