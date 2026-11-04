@@ -19,7 +19,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   -webkit-user-select:none;user-select:none;overscroll-behavior:none}
-body{padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 16px)}
+body{padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 90px)}
 .screen{display:none;max-width:520px;margin:0 auto;padding-top:10px}
 .screen.on{display:block}
 header{display:flex;align-items:center;gap:10px;margin:6px 0 14px}
@@ -62,6 +62,13 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}
 .sens{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;font-size:14px;color:var(--mut)}
 .sens button{background:var(--card2);border-radius:10px;width:40px;height:36px;font-size:20px;font-weight:700}
 .sens span b{color:var(--txt);font-size:17px}
+.sens button:disabled{opacity:.3}
+#rhBtn{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom) + 16px);z-index:40;width:58px;height:58px;border-radius:50%;background:var(--card2);font-size:28px;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+#rhBtn.on{background:var(--acc);animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+#rhSheet{position:fixed;left:0;right:0;bottom:0;z-index:45;background:var(--card);border-radius:22px 22px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 18px);box-shadow:0 -6px 30px rgba(0,0,0,.6);display:none;max-width:560px;margin:0 auto}
+#rhSheet.open{display:block}
+.chips.sm .chip{font-size:14px;padding:8px 10px}
 .meter i{display:block;height:100%;width:0;background:var(--blue);transition:width .08s}
 .flash{animation:fl .6s}
 @keyframes fl{0%{background:rgba(52,199,123,.55)}100%{background:var(--card)}}
@@ -103,7 +110,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v1.4</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v1.5</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -122,7 +129,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   <div class="tile dis"><span class="ic">👂</span><div><b>Oreille</b><span>Devine ce que l'app joue</span></div><span class="soon">V4</span></div>
   <button class="tile" data-go="settings"><span class="ic">⚙️</span><div><b>Réglages</b><span>Sévérité, sons</span></div></button>
   <p class="hint" id="weakLine"></p>
-  <p class="ver" style="text-align:center">v1.4</p>
+  <p class="ver" style="text-align:center">v1.5</p>
 </section>
 
 <!-- REGLAGES -->
@@ -137,7 +144,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   </div>
   <div class="card">
     <p class="lbl">Sensibilité du micro</p>
-    <div class="sens" style="margin:0"><button data-sens="-1">−</button><span><b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button></div>
+    <div class="sens" style="margin:0"><button data-sens="-1">−</button><span><b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
     <p class="hint" style="margin-top:10px">Plus haut = il t'entend même si tu grattes doucement (mais il entend aussi plus le bruit autour). La barre devient verte quand elle dépasse le trait blanc.<br>🤫 = je réécoute le bruit de la pièce pendant 1,5 s (ne joue pas). À refaire si le bruit change (télé, ventilo…).</p>
   </div>
   <div class="card">
@@ -168,7 +175,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="tfr" id="tFr">Joue une corde à vide</div>
     <div class="gauge"><div class="scale"></div><div class="mid"></div><div class="ndl" id="tNdl"></div></div>
     <div class="tcents" id="tCents"></div>
-    <div class="meter"><i id="tMeter"></i><b></b></div><div class="diagline" id="dT"></div><div class="sens"><button data-sens="-1">−</button><span>Sensibilité micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button></div>
+    <div class="meter"><i id="tMeter"></i><b></b></div><div class="diagline" id="dT"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
     <div class="strings" id="tStrings"></div>
   </div>
   <p class="hint">Aiguille à gauche = trop grave (serre la corde). À droite = trop aigu (desserre). Au centre en vert = parfait.</p>
@@ -202,7 +209,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="diag" id="pDiag"></div>
     <div class="notes" id="pNotes"></div>
     <div class="status" id="pStatus">J'écoute…</div>
-    <div class="meter"><i id="pMeter"></i><b></b></div><div class="diagline" id="dP"></div><div class="sens"><button data-sens="-1">−</button><span>Sensibilité micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button></div>
+    <div class="meter"><i id="pMeter"></i><b></b></div><div class="diagline" id="dP"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
   </div>
   <div class="row"><button class="big sec" id="pSkip">Passer ›</button></div>
 </section>
@@ -224,8 +231,8 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="seg" id="cNum"><button data-v="10" class="on">10</button><button data-v="20">20</button><button data-v="30">30</button></div>
   </div>
   <div class="card">
-    <p class="lbl">Bip du métronome</p>
-    <div class="seg" id="cClick"><button data-v="1" class="on">Oui</button><button data-v="0">Non</button></div>
+    <p class="lbl">Son pendant le chrono</p>
+    <div class="chips sm" id="cStyle"></div>
   </div>
   <p class="hint">Les accords viennent de ta liste de l'entraînement (<span id="cListInfo"></span>).</p>
   <button class="big" id="cStart">Go !</button>
@@ -243,7 +250,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="chordFr" id="cFr"></div>
     <div class="diag" id="cDiag"></div>
     <div class="notes" id="cNotes"></div>
-    <div class="meter"><i id="cMeter"></i><b></b></div><div class="diagline" id="dC"></div><div class="sens"><button data-sens="-1">−</button><span>Sensibilité micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button></div>
+    <div class="meter"><i id="cMeter"></i><b></b></div><div class="diagline" id="dC"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
   </div>
   <div class="next">Ensuite : <b id="cNext">–</b></div>
 </section>
@@ -258,9 +265,21 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   <button class="big sec" data-go="hub">Menu</button>
 </section>
 
+<button id="rhBtn" aria-label="Rythme">🥁</button>
+<div id="rhSheet">
+  <div style="display:flex;align-items:center;margin-bottom:10px"><b style="font-size:19px;flex:1">🥁 Rythme</b><button class="back" id="rhClose">Fermer</button></div>
+  <p class="lbl">Style</p>
+  <div class="chips sm" id="rhStyles"></div>
+  <p class="lbl" style="margin-top:14px">Tempo : <b id="rhBpmV" style="color:var(--txt);font-size:18px">80</b> BPM</p>
+  <div class="row" style="align-items:center"><button class="pill" id="rhM" style="flex:0 0 46px">−</button><input type="range" id="rhBpm" min="40" max="180" step="1" value="80"><button class="pill" id="rhP" style="flex:0 0 46px">+</button></div>
+  <p class="lbl" style="margin-top:14px">Volume</p>
+  <input type="range" id="rhVol" min="0.05" max="1" step="0.05" value="0.6">
+  <button class="big" id="rhPlay">▶︎ Lancer</button>
+  <p class="hint" style="margin-top:10px">Il continue quand tu changes d'écran. Le micro entend un peu le beat : j'ai fait des sons qui le gênent le moins possible, mais avec des écouteurs filaires c'est parfait.</p>
+</div>
 <script>
 'use strict';
-const VERSION='v1.4';
+const VERSION='v1.5';
 
 /* ===================== DONNÉES ===================== */
 const PC_EN=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
@@ -316,7 +335,7 @@ const store={
   get(k,d){try{const v=localStorage.getItem('acc_'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
   set(k,v){try{localStorage.setItem('acc_'+k,JSON.stringify(v));}catch(e){}}
 };
-const cfg=Object.assign({inst:null,sev:1,ding:1,sens:7,micMode:0,bpm:80,beats:4,num:10,click:1,order:0},store.get('cfg',{}));
+const cfg=Object.assign({inst:null,sev:1,ding:1,sens:7,micMode:0,lockSens:0,rStyle:2,rBpm:80,vol:0.6,cStyle:1,bpm:80,beats:4,num:10,click:1,order:0},store.get('cfg',{}));
 function saveCfg(){store.set('cfg',cfg);}
 function I(){return INST[cfg.inst];}
 function selected(){const all=I().chords;const off=store.get('off_'+cfg.inst,[]);const s=all.filter(c=>!off.includes(c.key));return s.length?s:all;}
@@ -330,6 +349,7 @@ function go(name){
   stopLoops();
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='s-'+name));
   current=name; window.scrollTo(0,0);
+  $('rhBtn').style.display=name==='chrono'?'none':'';$('rhSheet').classList.remove('open');
   if(name==='hub') renderHub();
   if(name==='settings') renderSettings();
   if(name==='practiceSetup') renderPracticeSetup();
@@ -362,7 +382,7 @@ function renderSettings(){
 $('resetStats').onclick=()=>{store.set('stats_'+cfg.inst,{});$('resetStats').textContent='Stats effacées ✓';};
 
 /* ===================== AUDIO ===================== */
-const A={ctx:null,an:null,stream:null,fd:null,td:null,noise:-80,thr:-75,dead:0,cal:null,nspec:null,slow:-100,lastStrum:-1e9};
+const A={ctx:null,an:null,stream:null,fd:null,td:null,noise:-80,thr:-75,dead:0,kicks:[],cal:null,nspec:null,slow:-100,lastStrum:-1e9};
 function ensureCtx(){
   try{if(!A.ctx) A.ctx=new (window.AudioContext||window.webkitAudioContext)();
     if(A.ctx.state!=='running') A.ctx.resume().catch(()=>{});}catch(e){}
@@ -393,15 +413,21 @@ function calStep(){
 }
 /* --- détection du coup de gratte (attaque) --- */
 function strumCheck(db,ts){
-  const td=A.td,N=td.length;const en=(a,b)=>{let x=0;for(let i=a;i<b;i++)x+=td[i]*td[i];return x/(b-a);};
+  let td=A.td;if(A.an2){A.an2.getFloatTimeDomainData(A.td2);td=A.td2;}
+  const N=td.length;const en=(a,b)=>{let x=0;for(let i=a;i<b;i++)x+=td[i]*td[i];return x/(b-a);};
   const now=en(N-1024,N),before=en(N-8192,N-4096);
-  if(now>before*2&&db>A.thr) A.lastStrum=ts;
+  // juste après une grosse caisse jouée par l'app, on ne compte pas ça comme un coup de gratte
+  const ct=A.ctx.currentTime,nearKick=A.kicks.some(k=>ct>k-0.02&&ct<k+0.1);
+  if(!nearKick&&now>before*2&&now>1e-9&&db>A.thr) A.lastStrum=ts;
   return ts-A.lastStrum<2500;
 }
 document.addEventListener('click',e=>{if(e.target.closest('[data-cal]')) startCal();});
-function resetMic(){try{if(A.stream)A.stream.getTracks().forEach(t=>t.stop());}catch(e){}A.stream=null;A.an=null;A.noise=-80;}
-function showSens(){document.querySelectorAll('.sensV').forEach(e=>e.textContent=cfg.sens);}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-sens]');if(!b)return;cfg.sens=Math.max(1,Math.min(10,cfg.sens+(+b.dataset.sens)));saveCfg();showSens();});
+function resetMic(){try{if(A.stream)A.stream.getTracks().forEach(t=>t.stop());}catch(e){}A.stream=null;A.an=null;A.an2=null;A.noise=-80;}
+function showSens(){document.querySelectorAll('.sensV').forEach(e=>e.textContent=cfg.sens);
+  document.querySelectorAll('[data-sens]').forEach(b=>b.disabled=!!cfg.lockSens);
+  document.querySelectorAll('[data-lock]').forEach(b=>b.textContent=cfg.lockSens?'🔒':'🔓');}
+document.addEventListener('click',e=>{if(e.target.closest('[data-lock]')){cfg.lockSens=cfg.lockSens?0:1;saveCfg();showSens();}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-sens]');if(!b||cfg.lockSens)return;cfg.sens=Math.max(1,Math.min(10,cfg.sens+(+b.dataset.sens)));saveCfg();showSens();});
 async function mic(errEl){
   try{
     ensureCtx();
@@ -412,6 +438,9 @@ async function mic(errEl){
       A.an=A.ctx.createAnalyser();A.an.fftSize=32768;A.an.smoothingTimeConstant=0;
       A.an.minDecibels=-130;A.an.maxDecibels=0;
       src.connect(A.an);
+      // copie filtrée 80–1300 Hz : sert à repérer le coup de gratte sans être gêné par le beat
+      let node=src;for(const [ty,f] of [['highpass',80],['highpass',80],['lowpass',1300],['lowpass',1300]]){const b=A.ctx.createBiquadFilter();b.type=ty;b.frequency.value=f;node.connect(b);node=b;}
+      A.an2=A.ctx.createAnalyser();A.an2.fftSize=8192;node.connect(A.an2);A.td2=new Float32Array(8192);
       A.fd=new Float32Array(A.an.frequencyBinCount);A.td=new Float32Array(A.an.fftSize);
       startCal();
     }
@@ -432,6 +461,57 @@ function beep(freqs,dur,vol,when){
     o.connect(g).connect(A.ctx.destination);o.start(t);o.stop(t+dur+0.02);}
 }
 const ding=()=>{if(cfg.ding) beep([2093,3136],0.25,0.25);};
+
+/* ===================== RYTHME (métronome / beats) ===================== */
+/* Les sons sont faits exprès hors de la zone que le micro analyse (80–1300 Hz) :
+   grosse caisse très grave, caisse claire et charley très aigus → ça gêne le moins possible la détection. */
+const STYLES=[
+  {fr:'Rien'},
+  {fr:'Bip',metro:true},
+  {fr:'Beat simple',k:[1,0,0,0,1,0,0,0],s:[0,0,1,0,0,0,1,0],h:[1,1,1,1,1,1,1,1]},
+  {fr:'Beat rock',k:[1,0,0,0,1,1,0,0],s:[0,0,1,0,0,0,1,0],h:[1,1,1,1,1,1,1,1]},
+  {fr:'Ballade',k:[1,0,0,1,0,0,0,0],s:[0,0,0,0,1,0,0,0],h:[1,0,1,0,1,0,1,0]},
+];
+let master=null,noiseBuf=null;
+function drumInit(){
+  ensureCtx();const c=A.ctx;
+  if(!master){master=c.createGain();master.connect(c.destination);}
+  master.gain.value=cfg.vol;
+  if(!noiseBuf){noiseBuf=c.createBuffer(1,c.sampleRate,c.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
+}
+function env(g,t,vol,dur){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.002);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);}
+function noiseHit(t,hp,vol,dur){const c=A.ctx,n=c.createBufferSource();n.buffer=noiseBuf;let node=n;
+  for(let i=0;i<3;i++){const f=c.createBiquadFilter();f.type='highpass';f.frequency.value=hp;node.connect(f);node=f;}
+  const g=c.createGain();env(g,t,vol,dur);node.connect(g).connect(master);n.start(t,Math.random()*0.5);n.stop(t+dur+0.02);}
+function toneHit(t,f0,f1,vol,dur){const c=A.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  env(g,t,vol,dur);o.connect(g).connect(master);o.start(t);o.stop(t+dur+0.02);}
+const DR={
+  kick:t=>{A.kicks.push(t);if(A.kicks.length>8)A.kicks.shift();toneHit(t,55,38,0.9,0.18);toneHit(t,3400,3000,0.12,0.012);},
+  snare:t=>noiseHit(t,2800,0.55,0.13),
+  hat:t=>noiseHit(t,8000,0.25,0.035),
+  bip:(t,acc)=>toneHit(t,acc?3200:2600,acc?3200:2600,acc?0.5:0.3,0.03),
+};
+function playStep(st,step,t,acc){
+  if(!st||(!st.metro&&!st.k)) return;
+  if(st.metro){if(step%2===0) DR.bip(t,acc);return;}
+  if(st.k[step]) DR.kick(t); if(st.s[step]) DR.snare(t); if(st.h[step]) DR.hat(t);
+}
+const RH={on:false,next:0,step:0,timer:null};
+function rhTick(){const st=STYLES[cfg.rStyle],dt=60/cfg.rBpm/2;
+  if(RH.next<A.ctx.currentTime-0.2) RH.next=A.ctx.currentTime+0.05;
+  while(RH.next<A.ctx.currentTime+0.12){playStep(st,RH.step%8,RH.next,RH.step%8===0);RH.next+=dt;RH.step++;}}
+function rhStart(){drumInit();if(A.ctx.state!=='running')A.ctx.resume();RH.on=true;RH.step=0;RH.next=A.ctx.currentTime+0.08;clearInterval(RH.timer);RH.timer=setInterval(rhTick,25);rhUi();}
+function rhStop(){RH.on=false;clearInterval(RH.timer);rhUi();}
+function rhUi(){
+  const b=$('rhBtn');if(b) b.classList.toggle('on',RH.on);
+  const p=$('rhPlay');if(p){p.textContent=RH.on?'⏹ Stop':'▶︎ Lancer';p.classList.toggle('sec',RH.on);}
+  if($('rhBpmV')) $('rhBpmV').textContent=cfg.rBpm;
+}
+function rhRenderSheet(){
+  $('rhStyles').innerHTML=STYLES.slice(1).map((st,i)=>`<button class="chip ${cfg.rStyle===i+1?'on':''}" data-st="${i+1}">${st.fr}</button>`).join('');
+  $('rhStyles').querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{cfg.rStyle=+b.dataset.st;saveCfg();rhRenderSheet();});
+  $('rhBpm').value=cfg.rBpm;$('rhVol').value=cfg.vol;rhUi();
+}
 
 /* niveau RMS (dB) sur les ~85 dernières ms */
 function levelDb(){
@@ -680,7 +760,8 @@ function renderChronoSetup(){
   $('cBpm').value=cfg.bpm;$('cBpm').oninput=e=>{cfg.bpm=+e.target.value;saveCfg();upd();};
   segInit('cBeats',cfg.beats,v=>{cfg.beats=+v;saveCfg();upd();});
   segInit('cNum',cfg.num,v=>{cfg.num=+v;saveCfg();});
-  segInit('cClick',cfg.click,v=>{cfg.click=+v;saveCfg();});
+  const rs=()=>{$('cStyle').innerHTML=STYLES.map((st,i)=>`<button class="chip ${cfg.cStyle===i?'on':''}" data-st="${i}">${st.fr}</button>`).join('');
+    $('cStyle').querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{cfg.cStyle=+b.dataset.st;saveCfg();rs();});};rs();
   $('cListInfo').textContent=selected().map(c=>c.n).join(' ');
   upd();
 }
@@ -689,8 +770,9 @@ $('cStart').onclick=startChrono;
 $('rAgain').onclick=startChrono;
 $('cBack').onclick=()=>go('chronoSetup');
 async function startChrono(){
-  go('chrono');
+  rhStop();go('chrono');
   if(!await mic($('errChrono'))) return;
+  drumInit();
   const list=selected();const seq=[];let prev=null;
   for(let i=0;i<cfg.num;i++){const c=pickNext(list,prev);seq.push(c);prev=c;}
   const beat=60/cfg.bpm;
@@ -712,11 +794,12 @@ function chronoTick(ts){
   const now=A.ctx.currentTime;
   // métronome programmé un peu en avance
   const total=C.countIn+C.dur*C.seq.length;
+  const half=C.beat/2;
   while(C.nextClick<now+0.15&&C.nextClick<C.t0+total-0.01){
-    const k=Math.round((C.nextClick-C.t0)/C.beat);
-    const inCount=k<4;const first=inCount?false:((k-4)%cfg.beats===0);
-    if(cfg.click||inCount) beep([first?3200:2600],0.03,first?0.5:0.3,C.nextClick);
-    C.nextClick+=C.beat;
+    const k=Math.round((C.nextClick-C.t0)/half);
+    if(k<8){if(k%2===0) DR.bip(C.nextClick,false);}            // décompte 4 temps
+    else {const j=k-8;playStep(STYLES[cfg.cStyle],j%8,C.nextClick,j%(2*cfg.beats)===0);}
+    C.nextClick+=half;
   }
   const t=now-C.t0;
   const db=levelDb();meter($('cMeter'),db);const cal=calStep();const on=gate(db)&&!cal&&strumCheck(db,ts);const ch=cal?chSm:chroma();diag('dC',db,on,ch);
@@ -760,6 +843,14 @@ function finishChrono(){
   $('rWeak').innerHTML=w.map(([n,k])=>`<span class="chip r">${n} ×${k}</span>`).join('');
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='s-results'));current='results';
 }
+
+$('rhBtn').onclick=()=>{rhRenderSheet();$('rhSheet').classList.add('open');};
+$('rhClose').onclick=()=>$('rhSheet').classList.remove('open');
+$('rhPlay').onclick=()=>{RH.on?rhStop():rhStart();};
+$('rhBpm').oninput=e=>{cfg.rBpm=+e.target.value;saveCfg();rhUi();};
+$('rhM').onclick=()=>{cfg.rBpm=Math.max(40,cfg.rBpm-1);saveCfg();$('rhBpm').value=cfg.rBpm;rhUi();};
+$('rhP').onclick=()=>{cfg.rBpm=Math.min(180,cfg.rBpm+1);saveCfg();$('rhBpm').value=cfg.rBpm;rhUi();};
+$('rhVol').oninput=e=>{cfg.vol=+e.target.value;saveCfg();if(master)master.gain.value=cfg.vol;};
 
 /* ===================== DÉMARRAGE ===================== */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&A.ctx&&A.ctx.state!=='running')A.ctx.resume();});
