@@ -103,6 +103,8 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 .strings div.on{background:var(--acc);color:#1a1200}
 .diagline{font-size:12px;color:var(--mut);text-align:center;line-height:1.4;margin-top:4px;min-height:34px}
 .fb svg{width:100%;height:auto;display:block}
+.tabstrip{overflow-x:auto;-webkit-overflow-scrolling:touch;background:#1e2129;border-radius:10px;padding:4px 0}
+.tabstrip svg{display:block}
 .err{background:rgba(239,83,80,.15);color:#ffb3b1;border-radius:12px;padding:12px;margin:10px 0;display:none;font-size:15px;line-height:1.4}
 </style>
 </head>
@@ -111,7 +113,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v3.1</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v4.0</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -129,10 +131,10 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   <button class="tile" data-go="scSetup"><span class="ic">🎼</span><div><b>Gammes</b><span>Note par note, libre ou au métronome</span></div></button>
   <div class="tile dis"><span class="ic">👂</span><div><b>Oreille</b><span>Devine ce que l'app joue</span></div><span class="soon">V4</span></div>
   <button class="tile" data-go="arSetup"><span class="ic">🌊</span><div><b>Arpèges &amp; sweep picking</b><span>Note par note, puis de plus en plus vite</span></div></button>
-  <div class="tile dis"><span class="ic">📜</span><div><b>Tabs</b><span>Créer, importer, et la tab avance quand tu joues</span></div><span class="soon">V4</span></div>
+  <button class="tile" data-go="tabs"><span class="ic">📜</span><div><b>Tabs</b><span>Importe tes tabs (Guitar Pro…), la tab avance quand tu joues</span></div></button>
   <button class="tile" data-go="settings"><span class="ic">⚙️</span><div><b>Réglages</b><span>Sévérité, sons</span></div></button>
   <p class="hint" id="weakLine"></p>
-  <p class="ver" style="text-align:center">v3.1</p>
+  <p class="ver" style="text-align:center">v4.0</p>
 </section>
 
 <!-- REVISION -->
@@ -231,6 +233,60 @@ input[type=range]{width:100%;accent-color:var(--acc)}
       <p class="hint" data-q="speed" style="margin-top:8px"></p>
     </div></div>
 </template>
+
+<!-- TABS : BIBLIOTHEQUE -->
+<section class="screen" id="s-tabs">
+  <header><button class="back" data-go="hub">‹</button><h1>Mes tabs</h1></header>
+  <div class="card"><p class="hint" style="margin:0">Tes tabs restent <b>sur ton iPhone</b> (rien n'est envoyé ailleurs). Formats : <b>Guitar Pro</b> (.gp .gp5 .gpx .gp4 .gp3), <b>MusicXML</b>, ou une <b>tab texte</b> collée.</p></div>
+  <div class="card"><p class="lbl">Ma bibliothèque</p><div id="tabList"></div></div>
+  <label class="big" style="text-align:center;cursor:pointer">📂 Importer un fichier<input type="file" id="tabFile" style="display:none"></label>
+  <button class="big sec" id="tabPasteBtn">📋 Coller une tab texte</button>
+  <div class="card" id="tabPasteCard" style="display:none;margin-top:12px">
+    <p class="lbl">Nom</p><input id="tabPasteName" placeholder="Ma tab" style="width:100%;font:inherit;padding:10px;border-radius:10px;border:0;background:var(--card2);color:var(--txt)">
+    <p class="lbl" style="margin-top:10px">Colle la tab ici (lignes e|--- B|--- …)</p>
+    <textarea id="tabPasteTxt" rows="8" style="width:100%;font:13px ui-monospace,Menlo,monospace;padding:10px;border-radius:10px;border:0;background:var(--card2);color:var(--txt);-webkit-user-select:text;user-select:text" placeholder="e|-----------12--|&#10;B|--------13-----|&#10;G|-----14--------|&#10;D|--14-----------|&#10;A|12-------------|&#10;E|---------------|"></textarea>
+    <button class="big" id="tabPasteSave">Enregistrer</button>
+  </div>
+  <div class="err" id="errTabs"></div>
+</section>
+
+<!-- TABS : REGLAGE -->
+<section class="screen" id="s-tabSetup">
+  <header><button class="back" data-go="tabs">‹</button><h1 id="tsTitle">Tab</h1></header>
+  <div class="card" id="tsTrackCard"><p class="lbl">Piste</p><div class="chips sm" id="tsTracks"></div><p class="hint" id="tsTuning" style="margin-top:8px"></p></div>
+  <div class="card"><p class="lbl">Mesures à travailler</p>
+    <div class="row" style="align-items:center"><span class="hint" style="flex:0 0 auto">de</span><button class="pill" data-tb="a-" style="flex:0 0 42px">−</button><b id="tsA" style="text-align:center;font-size:20px">1</b><button class="pill" data-tb="a+" style="flex:0 0 42px">+</button>
+    <span class="hint" style="flex:0 0 auto">à</span><button class="pill" data-tb="b-" style="flex:0 0 42px">−</button><b id="tsB" style="text-align:center;font-size:20px">1</b><button class="pill" data-tb="b+" style="flex:0 0 42px">+</button></div>
+    <p class="hint" id="tsInfo" style="margin-top:8px"></p></div>
+  <div class="card"><p class="lbl">Aperçu</p><div class="tabstrip" id="tsPrev"></div></div>
+  <div class="card"><p class="lbl">Mode</p><div class="seg" id="tsMode"><button data-v="0">Libre (la tab t'attend)</button><button data-v="1">Tempo (défile tout seul)</button></div>
+    <div id="tsTempoBox" style="margin-top:12px"><p class="lbl">Vitesse : <b id="tsSpdV" style="color:var(--txt);font-size:18px">50</b> % <span id="tsBpmV"></span></p>
+      <input type="range" id="tsSpd" min="20" max="100" step="5"></div></div>
+  <button class="big" id="tsStart">C'est parti</button>
+</section>
+
+<!-- TABS : JEU -->
+<section class="screen" id="s-tabPlay">
+  <header><button class="back" data-go="tabSetup">‹</button><h1 id="tpTitle">Tab</h1><span class="pill" id="tpCount">0 / 0</span></header>
+  <div class="err" id="errTp"></div>
+  <div class="card" id="tpCard">
+    <div class="progress"><span id="tpProg"></span><span id="tpBeat"></span></div>
+    <div class="timebar" id="tpTimebar"><i id="tpBar"></i></div>
+    <div id="tpCountIn" class="count" style="display:none"></div>
+    <div class="tabstrip" id="tpStrip"></div>
+    <div class="chordName" id="tpNote" style="font-size:44px;margin-top:8px">–</div>
+    <div class="chordFr" id="tpWhere"></div>
+    <div class="status" id="tpStatus">J'écoute…</div>
+    <div class="meter"><i id="tpMeter"></i><b></b></div><div class="diagline" id="dTp"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
+  </div>
+  <button class="big sec" id="tpSkip">Passer la note ›</button>
+  <div class="card" id="tpRes" style="display:none">
+    <div class="score"><div class="g"><b id="tpOk">0</b>justes</div><div class="r"><b id="tpKo">0</b>ratées</div></div>
+    <p class="hint" id="tpResTxt" style="text-align:center"></p>
+    <button class="big" id="tpAgain">Rejouer</button>
+    <button class="big" id="tpFaster" style="display:none">Rejouer plus vite</button>
+  </div>
+</section>
 
 <!-- REGLAGES -->
 <section class="screen" id="s-settings">
@@ -379,7 +435,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 </div>
 <script>
 'use strict';
-const VERSION='v3.1';
+const VERSION='v4.0';
 
 /* ===================== DONNÉES ===================== */
 const PC_EN=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
@@ -496,6 +552,8 @@ function go(name){
   if(name==='map') renderMap();
   if(name==='scSetup') renderScSetup();
   if(name==='arSetup') renderArSetup();
+  if(name==='tabs'){renderTabs();tabErr('');}
+  if(name==='tabSetup') renderTabSetup();
   if(name==='tuner') startTuner();
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b) go(b.dataset.go);});
@@ -1344,6 +1402,230 @@ function seqFinish(ts){
   if(!SQ.mode){const sec=((ts-SQ.startTs)/1000).toFixed(1).replace('.',',');$('qResTxt').textContent='Fini en '+sec+' s. Quand c\'est facile, passe en mode Tempo.';$('qFaster').style.display='none';}
   else {$('qResTxt').textContent=pc+'% à '+SQ.bpm+' BPM. '+(pc>=90?'Excellent : monte le tempo !':pc>=70?'Pas mal, refais-le au même tempo.':'Trop rapide pour l\'instant : baisse le tempo de 10.');
     $('qFaster').style.display=pc>=90?'':'none';$('qFaster').textContent='Rejouer à '+Math.min(200,SQ.bpm+5)+' BPM';}
+  ding();
+}
+
+/* ===================================================================
+   V4 — TABS : import Guitar Pro / MusicXML (alphaTab) + tab texte, et la tab qui avance quand tu joues
+   =================================================================== */
+const AT_URL='https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.8.1/dist/alphaTab.min.js';
+let atP=null;
+function loadAT(){if(window.alphaTab) return Promise.resolve();if(atP) return atP;
+  atP=new Promise((ok,ko)=>{const s=document.createElement('script');s.src=AT_URL;s.onload=()=>ok();s.onerror=()=>{atP=null;ko(new Error('Impossible de charger le lecteur Guitar Pro (pas de connexion ?)'));};document.head.appendChild(s);});return atP;}
+function tabsGet(){return store.get('tabs',[]);}
+function tabsSet(t){try{localStorage.setItem('acc_tabs',JSON.stringify(t));return true;}catch(e){return false;}}
+function b64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
+function unb64(s){const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ---------- bibliothèque ---------- */
+function renderTabs(){
+  const t=tabsGet();
+  $('tabList').innerHTML=t.length?t.map((x,i)=>`<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><button class="tile" style="flex:1;margin:0;padding:12px" data-open="${i}"><span class="ic" style="font-size:22px;width:30px">${x.kind==='txt'?'📄':'🎼'}</span><div><b style="font-size:16px">${esc(x.name)}</b><span>${x.kind==='txt'?'tab texte':'Guitar Pro / MusicXML'}</span></div></button><button class="pill" data-del="${i}" style="padding:14px">🗑</button></div>`).join('')
+    :'<p class="hint">Aucune tab pour l\'instant. Importe un fichier ou colle une tab texte.</p>';
+  $('tabList').querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openTab(+b.dataset.open));
+  $('tabList').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const t=tabsGet();if(!confirmDel(b))return;t.splice(+b.dataset.del,1);tabsSet(t);renderTabs();});
+}
+function confirmDel(b){if(b.dataset.sure) return true;b.dataset.sure=1;b.textContent='Sûr ?';setTimeout(()=>{b.textContent='🗑';delete b.dataset.sure;},2500);return false;}
+function tabErr(m){const e=$('errTabs');e.style.display=m?'block':'none';e.textContent=m||'';}
+$('tabFile').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f) return;tabErr('');
+  try{
+    const u8=new Uint8Array(await f.arrayBuffer());
+    await loadAT();parseGP(u8); // vérifie que le fichier se lit
+    const t=tabsGet();t.unshift({name:f.name.replace(/\.[^.]+$/,''),kind:'gp',data:b64(u8),at:Date.now()});
+    if(!tabsSet(t)){tabErr('Plus de place pour enregistrer ce fichier sur l\'iPhone. Supprime une tab.');return;}
+    renderTabs();openTab(0);
+  }catch(err){tabErr('Je n\'arrive pas à lire ce fichier : '+(err.message||err)+'. Formats lus : Guitar Pro (.gp .gp3 .gp4 .gp5 .gpx) et MusicXML.');}
+};
+$('tabPasteBtn').onclick=()=>{$('tabPasteCard').style.display=$('tabPasteCard').style.display==='none'?'':'none';};
+$('tabPasteSave').onclick=()=>{
+  const txt=$('tabPasteTxt').value;const r=parseTxt(txt);
+  if(!r.events.length){tabErr('Je ne trouve pas de tab dans ce texte. Il faut des lignes qui commencent par le nom de la corde, ex : e|--3--5--|');return;}
+  tabErr('');const t=tabsGet();t.unshift({name:$('tabPasteName').value.trim()||'Tab texte',kind:'txt',data:txt,at:Date.now()});tabsSet(t);
+  $('tabPasteTxt').value='';$('tabPasteName').value='';$('tabPasteCard').style.display='none';renderTabs();openTab(0);
+};
+
+/* ---------- lecture Guitar Pro / MusicXML via alphaTab ---------- */
+function parseGP(u8){
+  const score=alphaTab.importer.ScoreLoader.loadScoreFromBytes(u8,new alphaTab.Settings());
+  const tracks=[];
+  score.tracks.forEach((tr,ti)=>{const st=tr.staves[0];if(!st||st.isPercussion||!st.tuning||!st.tuning.length||st.tuning.every(x=>!x)) return;
+    const ev=[];let n=0;
+    st.bars.forEach((bar,bi)=>bar.voices.forEach(v=>v.beats.forEach(be=>{
+      if(be.isRest||be.graceType) return;
+      const ns=be.notes.filter(x=>!x.isTieDestination&&!x.isDead);if(!ns.length) return;
+      n+=ns.length;
+      ev.push({bar:bi,tick:be.absolutePlaybackStart,dur:be.playbackDuration,notes:ns.map(x=>({str:x.string,fret:x.fret,real:x.realValue,
+        t:x.isHammerPullDestination?(x.fret>=(x.hammerPullOrigin?x.hammerPullOrigin.fret:0)?'h':'p'):(x.slideInType||(x.slideOrigin?1:0))?'sl':''}))});
+    })));
+    ev.sort((a,b)=>a.tick-b.tick);
+    if(n) tracks.push({name:tr.name||('Piste '+(ti+1)),tuning:st.tuning.slice(),events:ev,bars:st.bars.length});
+  });
+  let tempo=score.tempo||120;const mb=score.masterBars.find(m=>m.tempoAutomations&&m.tempoAutomations.length);if(mb) tempo=mb.tempoAutomations[0].value;
+  if(!tracks.length) throw new Error('aucune piste de guitare avec des notes');
+  return {title:score.title,tempo,tracks};
+}
+/* ---------- lecture tab texte ---------- */
+function parseTxt(txt){
+  const lines=txt.replace(/\r/g,'').split('\n');const isStr=l=>/^\s*[A-Ga-g][#b]?\s*[|:]/.test(l)||/^\s*[|][-0-9]/.test(l);
+  const systems=[];let cur=[];
+  for(const l of lines){if(isStr(l)&&/-/.test(l)) cur.push(l);else{if(cur.length>=4)systems.push(cur);cur=[];}}
+  if(cur.length>=4)systems.push(cur);
+  const events=[];let base=0,nStr=0;
+  for(const sys of systems){
+    const n=sys.length;nStr=Math.max(nStr,n);
+    const rows=sys.map(l=>{const k=l.indexOf('|');return l.slice(k+1);});
+    const W=Math.max(...rows.map(r=>r.length));
+    for(let c=0;c<W;c++){
+      const ns=[];
+      rows.forEach((r,li)=>{const ch=r[c];if(ch>='0'&&ch<='9'&&!(r[c-1]>='0'&&r[c-1]<='9')){let num=ch;if(r[c+1]>='0'&&r[c+1]<='9')num+=r[c+1];
+        const prev=r[c-1];const t=prev==='h'?'h':prev==='p'?'p':(prev==='/'||prev==='\\'||prev==='s')?'sl':'';
+        ns.push({str:n-li,fret:+num,t});}});
+      if(ns.length) events.push({bar:systems.indexOf(sys),tick:(base+c)*240,dur:240,notes:ns});
+    }
+    base+=W+4;
+  }
+  return {events,nStr};
+}
+/* ---------- préparation d'une tab pour l'instrument ---------- */
+let TB=null; // tab ouverte
+async function openTab(i){
+  const t=tabsGet()[i];if(!t) return;
+  try{
+    if(t.kind==='txt'){const r=parseTxt(t.data);
+      const std=I().open.slice().reverse(); // aigu -> grave, comme alphaTab
+      TB={i,name:t.name,kind:'txt',tempo:60,tracks:[{name:'Tab',tuning:std.length===r.nStr?std:std,events:r.events,bars:Math.max(1,...r.events.map(e=>e.bar+1))}],tr:0};
+    } else {await loadAT();const r=parseGP(unb64(t.data));TB=Object.assign({i,name:t.name,kind:'gp',tr:0},r);}
+    TB.a=1;TB.b=TB.tracks[0].bars;go('tabSetup');
+  }catch(err){tabErr('Impossible d\'ouvrir cette tab : '+(err.message||err));}
+}
+const NOTE_EN=m=>PC_EN[((m%12)+12)%12];
+function tuningTxt(tu){return tu.slice().reverse().map(NOTE_EN).join(' ');}
+/* corde de la tab (1 = la plus grave) -> corde de ton instrument (0 = la plus grave), ou null si elle n'existe pas chez toi */
+function mapStr(track,str){const nT=track.tuning.length,nI=I().open.length;const idx=str-1-(nT-nI);return idx>=0&&idx<nI?idx:null;}
+function buildEvents(){
+  const tr=TB.tracks[TB.tr];const out=[];let skipped=0;
+  for(const e of tr.events){if(e.bar+1<TB.a||e.bar+1>TB.b) continue;
+    const ns=[];for(const n of e.notes){const s=mapStr(tr,n.str);if(s==null){skipped++;continue;}
+      ns.push({s,f:n.fret,m:I().open[s]+n.fret,t:n.t});}
+    if(ns.length) out.push({tick:e.tick,dur:e.dur,bar:e.bar,notes:ns});}
+  return {ev:out,skipped};
+}
+function renderTabSetup(){
+  if(!TB){go('tabs');return;}
+  const tr=TB.tracks[TB.tr];$('tsTitle').textContent=TB.name;
+  $('tsTrackCard').style.display=TB.tracks.length>1||TB.kind==='gp'?'':'none';
+  $('tsTracks').innerHTML=TB.tracks.map((t,i)=>`<button class="chip ${TB.tr===i?'on':''}" data-i="${i}">${esc(t.name)}</button>`).join('');
+  $('tsTracks').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{TB.tr=+b.dataset.i;TB.a=1;TB.b=TB.tracks[TB.tr].bars;renderTabSetup();});
+  const nT=tr.tuning.length,nI=I().open.length;
+  $('tsTuning').innerHTML=TB.kind==='gp'?'Accordage de la tab : <b>'+tuningTxt(tr.tuning)+'</b> ('+nT+' cordes). '+(nT>nI?'Tu as '+nI+' cordes : j\'utilise les '+nI+' plus aiguës, les notes sur les cordes en plus sont ignorées. ':'')+'Je compare aux <b>mêmes cases sur ton accordage standard</b>.':'';
+  $('tsA').textContent=TB.a;$('tsB').textContent=TB.b;
+  const {ev,skipped}=buildEvents();
+  $('tsInfo').textContent=ev.length+' notes/accords à jouer'+(skipped?' · '+skipped+' notes ignorées (corde que tu n\'as pas)':'')+(TB.kind==='gp'?' · tempo de la tab : '+TB.tempo+' BPM':'');
+  $('tsPrev').innerHTML=tabStrip(ev.slice(0,40),-1,[]);
+  const st=Object.assign({mode:0,spd:50},cfg.tb_||{});cfg.tb_=st;
+  if(TB.kind==='txt'&&st.mode===1) {} // le mode tempo marche aussi (notes régulières)
+  segInit('tsMode',st.mode,v=>{st.mode=+v;saveCfg();renderTabSetup();});
+  $('tsTempoBox').style.display=st.mode?'':'none';
+  $('tsSpd').value=st.spd;$('tsSpdV').textContent=st.spd;$('tsBpmV').textContent='= '+Math.round(TB.tempo*st.spd/100)+' BPM';
+  $('tsSpd').oninput=e=>{st.spd=+e.target.value;saveCfg();$('tsSpdV').textContent=st.spd;$('tsBpmV').textContent='= '+Math.round(TB.tempo*st.spd/100)+' BPM';};
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tb]');if(!b||!TB)return;const max=TB.tracks[TB.tr].bars;
+  const k=b.dataset.tb;if(k==='a-')TB.a=Math.max(1,TB.a-1);if(k==='a+')TB.a=Math.min(TB.b,TB.a+1);if(k==='b-')TB.b=Math.max(TB.a,TB.b-1);if(k==='b+')TB.b=Math.min(max,TB.b+1);renderTabSetup();});
+/* ---------- dessin de la tab (bande qui défile) ---------- */
+function tabStrip(ev,cur,hits){
+  const n=I().open.length,cw=34,top=16,sh=17,H=top+sh*(n-1)+26,W=Math.max(320,ev.length*cw+30);
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
+  for(let s=0;s<n;s++){const y=top+(n-1-s)*sh;g+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#5d6372" stroke-width="1"/><text x="2" y="${y+4}" font-size="10" font-weight="700" fill="#6c7383">${s===n-1&&cfg.inst==='guitar'?'e':NOTE_EN(I().open[s])}</text>`;}
+  let lastBar=null;
+  ev.forEach((e,k)=>{const x=20+k*cw;
+    if(e.bar!==lastBar){g+=`<line x1="${x-4}" y1="${top-2}" x2="${x-4}" y2="${top+sh*(n-1)+2}" stroke="#8a90a0" stroke-width="1.5"/><text x="${x-2}" y="${H-6}" font-size="9" fill="#6c7383">${e.bar+1}</text>`;lastBar=e.bar;}
+    const col=k===cur?'#f5a524':hits[k]===true?'#34c77b':hits[k]===false?'#ef5350':'#eef0f4';
+    if(k===cur) g+=`<rect x="${x}" y="${top-10}" width="${cw-6}" height="${sh*(n-1)+20}" rx="6" fill="rgba(245,165,36,.18)"/>`;
+    for(const nt of e.notes){const y=top+(n-1-nt.s)*sh;const lab=nt.f+'';
+      g+=`<rect x="${x+2}" y="${y-7}" width="${cw-10}" height="14" fill="#1e2129"/><text x="${x+(cw-6)/2}" y="${y+4}" text-anchor="middle" font-size="12" font-weight="800" fill="${col}">${lab}</text>`;
+      if(nt.t) g+=`<text x="${x-1}" y="${y-6}" font-size="8" fill="#9aa1b0">${nt.t}</text>`;}
+  });
+  return g+'</svg>';
+}
+/* ---------- jeu ---------- */
+let TP=null;
+$('tsStart').onclick=()=>startTabPlay();
+$('tpAgain').onclick=()=>startTabPlay();
+$('tpFaster').onclick=()=>{cfg.tb_.spd=Math.min(100,cfg.tb_.spd+5);saveCfg();startTabPlay();};
+$('tpSkip').onclick=()=>{if(!TP||TP.mode)return;TP.hits[TP.idx]=false;TP.idx++;NS.hist=[];if(TP.idx>=TP.ev.length)tpFinish(performance.now());else tpRender();};
+async function startTabPlay(){
+  rhStop();const {ev}=buildEvents();if(!ev.length) return;
+  const st=cfg.tb_||{mode:0,spd:50};
+  const bpm=TB.tempo*st.spd/100,secPerTick=60/bpm/960;
+  const t0tick=ev[0].tick;
+  TP={ev,idx:0,hits:new Array(ev.length).fill(null),mode:st.mode,bpm,stop:false,times:ev.map(e=>(e.tick-t0tick)*secPerTick),startTs:0,cur:-1};
+  if(TB.kind==='txt'){TP.times=ev.map((e,i)=>i*60/bpm/2);} // tab texte : 2 notes par temps
+  go('tabPlay');$('tpTitle').textContent=TB.name;$('tpRes').style.display='none';$('tpCard').style.display='';$('tpSkip').style.display=st.mode?'none':'';
+  $('tpTimebar').style.display=st.mode?'':'none';tpRender();
+  if(!await mic($('errTp'))) return;
+  resetChroma();NS.hist=[];
+  if(TP.mode){drumInit();TP.beat=60/bpm;TP.countIn=TP.beat*4;TP.t0=A.ctx.currentTime+0.4;TP.nextClick=TP.t0;
+    TP.end=TP.times[TP.times.length-1]+Math.max(0.3,(ev[ev.length-1].dur||480)*secPerTick);}
+  startLoop(tpTick);
+}
+function tpRender(){
+  const i=Math.min(TP.idx,TP.ev.length-1),e=TP.ev[i];
+  // on montre une fenêtre autour de la note courante
+  const a=Math.max(0,i-3),b=Math.min(TP.ev.length,a+40);
+  $('tpStrip').innerHTML=tabStrip(TP.ev.slice(a,b),i-a,TP.hits.slice(a,b));
+  const TN={h:' · hammer-on',p:' · pull-off',sl:' · slide'};
+  if(e.notes.length===1){const n=e.notes[0];$('tpNote').textContent=nName(n.m);$('tpWhere').textContent='corde '+strFull(n.s)+' · case '+n.f+(TN[n.t]||'');}
+  else {$('tpNote').textContent=e.notes.map(n=>nName(n.m)).join(' ');$('tpWhere').textContent='accord · '+e.notes.length+' notes ensemble';}
+  $('tpCount').textContent=TP.hits.filter(x=>x===true).length+' / '+TP.ev.length;
+  $('tpProg').textContent='Mesure '+(e.bar+1)+' · note '+(i+1)+' / '+TP.ev.length;
+}
+function evOk(e,det){
+  if(e.notes.length===1) return noteOk(det,e.notes[0].m);
+  // plusieurs notes ensemble : il faut entendre la plupart des notes
+  const pcs=[...new Set(e.notes.map(n=>n.m%12))];const heard=pcs.filter(p=>chSm[p]>0.3).length;
+  return heard>=Math.ceil(pcs.length*0.6)&&(!det||e.notes.some(n=>Math.abs(det.midi-n.m)%12===0));
+}
+function tpTick(ts){
+  if(!TP||TP.stop) return;
+  const db=levelDb();meter($('tpMeter'),db);
+  if(calStep()){$('tpStatus').textContent='🤫 Ne joue pas… je mesure le bruit de la pièce';$('tpStatus').style.color='var(--blue)';if(TP.mode){TP.t0=A.ctx.currentTime+0.4;TP.nextClick=TP.t0;}return;}
+  if($('tpStatus').textContent.startsWith('🤫')){$('tpStatus').textContent='J\'écoute…';$('tpStatus').style.color='';}
+  chroma();const det=hearNote(db);diag('dTp',db,gate(db),null,det?' · j\'entends '+nName(det.midi):'');
+  const ev=TP.ev;
+  if(!TP.mode){
+    if(!TP.startTs)TP.startTs=ts;
+    if(!gate(db)) return;
+    const e=ev[TP.idx];
+    if(evOk(e,det)){TP.hits[TP.idx]=true;TP.idx++;NS.hist=[];
+      if(TP.idx>=ev.length){tpFinish(ts);return;}
+      tpRender();$('tpStatus').textContent='✓';$('tpStatus').style.color='var(--ok)';
+    } else if(det&&e.notes.length===1&&det.midi!==(TP.idx>0&&ev[TP.idx-1].notes.length===1?ev[TP.idx-1].notes[0].m:-1)){
+      $('tpStatus').textContent='J\'entends '+nName(det.midi)+' — joue '+nName(e.notes[0].m)+' (case '+e.notes[0].f+')';$('tpStatus').style.color='var(--ko)';}
+    return;
+  }
+  const now=A.ctx.currentTime;
+  while(TP.nextClick<now+0.15&&TP.nextClick<TP.t0+TP.countIn+TP.end){const k=Math.round((TP.nextClick-TP.t0)/TP.beat);DR.bip(TP.nextClick,k>=4&&(k-4)%4===0);TP.nextClick+=TP.beat;}
+  const t=now-TP.t0;
+  if(t<TP.countIn){$('tpCountIn').style.display='block';$('tpCountIn').textContent=Math.max(1,4-Math.floor(Math.max(0,t)/TP.beat));return;}
+  $('tpCountIn').style.display='none';
+  const tt=t-TP.countIn;
+  if(tt>TP.end+0.3){tpFinish(ts);return;}
+  let k=0;while(k+1<ev.length&&TP.times[k+1]<=tt)k++;
+  for(const j of [k-1,k,k+1]){if(j<0||j>=ev.length||TP.hits[j]===true)continue;
+    const gap=(TP.times[j+1]!=null?TP.times[j+1]:TP.end)-TP.times[j];const tol=Math.max(0.12,gap*0.4);
+    if(tt>=TP.times[j]-tol&&tt<=TP.times[j]+gap+tol&&gate(db)&&evOk(ev[j],det)){TP.hits[j]=true;NS.hist=[];}}
+  for(let j=0;j<ev.length;j++){const gap=(TP.times[j+1]!=null?TP.times[j+1]:TP.end)-TP.times[j];if(TP.hits[j]==null&&tt>TP.times[j]+gap+Math.max(0.12,gap*0.4))TP.hits[j]=false;}
+  if(k!==TP.cur){TP.cur=k;TP.idx=k;tpRender();}
+  $('tpBar').style.width=Math.min(100,tt/TP.end*100)+'%';$('tpBeat').textContent=Math.round(TP.bpm)+' BPM';
+}
+function tpFinish(ts){
+  stopLoops();TP.stop=true;const n=TP.ev.length,ok=TP.hits.filter(x=>x===true).length;TP.idx=n-1;tpRender();
+  $('tpRes').style.display='';$('tpSkip').style.display='none';$('tpOk').textContent=ok;$('tpKo').textContent=n-ok;const pc=Math.round(ok/n*100);
+  if(!TP.mode){$('tpResTxt').textContent='Fini en '+((ts-TP.startTs)/1000).toFixed(1).replace('.',',')+' s. Quand ça roule, passe en mode Tempo.';$('tpFaster').style.display='none';}
+  else{const spd=cfg.tb_.spd;$('tpResTxt').textContent=pc+'% à '+spd+' % de la vitesse ('+Math.round(TP.bpm)+' BPM). '+(pc>=90?'Excellent : accélère !':pc>=70?'Pas mal, refais-le à la même vitesse.':'Trop rapide pour l\'instant : baisse la vitesse.');
+    $('tpFaster').style.display=pc>=90&&spd<100?'':'none';$('tpFaster').textContent='Rejouer à '+Math.min(100,spd+5)+' %';}
   ding();
 }
 
