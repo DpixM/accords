@@ -89,14 +89,16 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 .strings{display:flex;justify-content:center;gap:8px;margin-top:14px}
 .strings div{background:var(--card2);border-radius:10px;padding:8px 10px;font-weight:700;min-width:44px;text-align:center;color:var(--mut)}
 .strings div.on{background:var(--acc);color:#1a1200}
+.diagline{font-size:12px;color:var(--mut);text-align:center;line-height:1.4;margin-top:4px;min-height:34px}
 .err{background:rgba(239,83,80,.15);color:#ffb3b1;border-radius:12px;padding:12px;margin:10px 0;display:none;font-size:15px;line-height:1.4}
 </style>
 </head>
 <body>
 
 <!-- CHOIX INSTRUMENT -->
+<div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v1.0</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v1.1</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -115,7 +117,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   <div class="tile dis"><span class="ic">👂</span><div><b>Oreille</b><span>Devine ce que l'app joue</span></div><span class="soon">V4</span></div>
   <button class="tile" data-go="settings"><span class="ic">⚙️</span><div><b>Réglages</b><span>Sévérité, sons</span></div></button>
   <p class="hint" id="weakLine"></p>
-  <p class="ver" style="text-align:center">v1.0</p>
+  <p class="ver" style="text-align:center">v1.1</p>
 </section>
 
 <!-- REGLAGES -->
@@ -151,7 +153,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="tfr" id="tFr">Joue une corde à vide</div>
     <div class="gauge"><div class="scale"></div><div class="mid"></div><div class="ndl" id="tNdl"></div></div>
     <div class="tcents" id="tCents"></div>
-    <div class="meter"><i id="tMeter"></i></div>
+    <div class="meter"><i id="tMeter"></i></div><div class="diagline" id="dT"></div>
     <div class="strings" id="tStrings"></div>
   </div>
   <p class="hint">Aiguille à gauche = trop grave (serre la corde). À droite = trop aigu (desserre). Au centre en vert = parfait.</p>
@@ -185,7 +187,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="diag" id="pDiag"></div>
     <div class="notes" id="pNotes"></div>
     <div class="status" id="pStatus">J'écoute…</div>
-    <div class="meter"><i id="pMeter"></i></div>
+    <div class="meter"><i id="pMeter"></i></div><div class="diagline" id="dP"></div>
   </div>
   <div class="row"><button class="big sec" id="pSkip">Passer ›</button></div>
 </section>
@@ -226,7 +228,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="chordFr" id="cFr"></div>
     <div class="diag" id="cDiag"></div>
     <div class="notes" id="cNotes"></div>
-    <div class="meter"><i id="cMeter"></i></div>
+    <div class="meter"><i id="cMeter"></i></div><div class="diagline" id="dC"></div>
   </div>
   <div class="next">Ensuite : <b id="cNext">–</b></div>
 </section>
@@ -243,7 +245,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 
 <script>
 'use strict';
-const VERSION='v1.0';
+const VERSION='v1.1';
 
 /* ===================== DONNÉES ===================== */
 const PC_EN=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
@@ -343,20 +345,26 @@ function renderSettings(){
 $('resetStats').onclick=()=>{store.set('stats_'+cfg.inst,{});$('resetStats').textContent='Stats effacées ✓';};
 
 /* ===================== AUDIO ===================== */
-const A={ctx:null,an:null,stream:null,fd:null,td:null,noise:-75};
+const A={ctx:null,an:null,stream:null,fd:null,td:null,noise:-80,thr:-75,dead:0};
+function ensureCtx(){
+  try{if(!A.ctx) A.ctx=new (window.AudioContext||window.webkitAudioContext)();
+    if(A.ctx.state!=='running') A.ctx.resume().catch(()=>{});}catch(e){}
+  const o=document.getElementById('tapOv');if(o&&A.ctx&&A.ctx.state==='running') o.style.display='none';
+}
+['pointerdown','touchend','click'].forEach(ev=>document.addEventListener(ev,ensureCtx,true));
 async function mic(errEl){
   try{
-    if(!A.ctx){
+    ensureCtx();
+    if(!A.an){
       if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('nomedia');
       A.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-      A.ctx=new (window.AudioContext||window.webkitAudioContext)();
       const src=A.ctx.createMediaStreamSource(A.stream);
       A.an=A.ctx.createAnalyser();A.an.fftSize=32768;A.an.smoothingTimeConstant=0;
       A.an.minDecibels=-130;A.an.maxDecibels=0;
       src.connect(A.an);
       A.fd=new Float32Array(A.an.frequencyBinCount);A.td=new Float32Array(A.an.fftSize);
     }
-    if(A.ctx.state!=='running') await A.ctx.resume();
+    if(A.ctx.state!=='running'){try{await Promise.race([A.ctx.resume(),new Promise(r=>setTimeout(r,400))]);}catch(e){}}
     if(errEl) errEl.style.display='none';
     return true;
   }catch(e){
@@ -382,12 +390,24 @@ function levelDb(){
 }
 /* bruit de fond qui s'adapte tout seul */
 function gate(db){
-  if(db<A.noise) A.noise=A.noise*0.7+db*0.3; else A.noise+=0.003*(db-A.noise);
-  A.noise=Math.max(A.noise,-95);
-  const margin=[8,10,12][cfg.sev];
-  return db>A.noise+margin && db>-80;
+  if(db<A.noise) A.noise=A.noise*0.7+db*0.3; else A.noise+=0.0008*(db-A.noise);
+  A.noise=Math.max(A.noise,-100);
+  A.thr=Math.max(A.noise+[5,7,9][cfg.sev],-88);
+  return db>A.thr;
 }
-function meter(el,db){el.style.width=Math.max(0,Math.min(100,(db+80)*1.6))+'%';}
+function meter(el,db){el.style.width=Math.max(0,Math.min(100,(db+90)*1.4))+'%';}
+/* ligne de diagnostic + écran "touche pour activer" */
+function diag(id,db,on,ch,extra){
+  const el=$(id);if(!el||!A.ctx) return;
+  const st=A.ctx.state;
+  document.getElementById('tapOv').style.display=st==='running'?'none':'flex';
+  if(db<-115) A.dead++; else A.dead=0;
+  let notes='';
+  if(ch&&on){const l=[...Array(12).keys()].filter(p=>ch[p]>0.35).sort((a,b)=>ch[b]-ch[a]).slice(0,5);notes=' · notes : '+(l.map(p=>PC_FR[p]).join(' ')||'–');}
+  let msg=(st==='running'?'🎤 micro OK':'⛔ son en pause ('+st+')')+' · '+Math.round(A.ctx.sampleRate/100)/10+' kHz · son '+Math.round(db)+' dB / seuil '+Math.round(A.thr)+' dB · '+(on?'🟢 je t\'entends':'⚪ trop faible')+notes+(extra||'');
+  if(A.dead>60) msg='⚠️ Le micro ne reçoit RIEN (silence total). Ferme Safari complètement (balaye vers le haut) et rouvre la page. '+msg;
+  el.textContent=msg;
+}
 
 /* chroma : quelle "quantité" de chaque note (Do…Si) on entend */
 let chSm=new Float32Array(12);
@@ -420,7 +440,7 @@ function chroma(){
 function resetChroma(){chSm=new Float32Array(12);}
 
 /* l'accord joué correspond-il à la cible ? */
-const SEV=[{sim:0.6,req:0.07,best:false},{sim:0.7,req:0.12,best:true},{sim:0.8,req:0.2,best:true,extra:0.45}];
+const SEV=[{sim:0.55,req:0.06,best:false},{sim:0.65,req:0.1,best:true},{sim:0.8,req:0.2,best:true,extra:0.45}];
 function judge(ch,target){
   const P=SEV[cfg.sev];
   let best=null,bs=-1;for(const d of DICT){const s=cos(ch,d.t);if(s>bs){bs=s;best=d;}}
@@ -478,6 +498,7 @@ function yin(buf,sr){
   const a=cm[tau-1],b=cm[tau],c=cm[tau+1];const den=a-2*b+c;const p=den?0.5*(a-c)/den:0;
   return sr/(tau+p);
 }
+let tunerF=0;
 async function startTuner(){
   const inst=I();
   $('tStrings').innerHTML=inst.open.map((m,i)=>`<div data-m="${m}">${inst.strNames[i]}</div>`).join('');
@@ -486,9 +507,10 @@ async function startTuner(){
   let hist=[];
   startLoop(()=>{
     const db=levelDb();meter($('tMeter'),db);
-    if(!gate(db)){return;}
+    const on=gate(db);diag('dT',db,on,null,tunerF?' · '+tunerF.toFixed(1)+' Hz':'');
+    if(!on){return;}
     const buf=A.td.subarray(A.td.length-4096);
-    let f=yin(buf,A.ctx.sampleRate); if(!f) return;
+    let f=yin(buf,A.ctx.sampleRate); tunerF=f; if(!f) return;
     // correction d'octave grossière pour la guitare
     hist.push(f);if(hist.length>5)hist.shift();
     const sorted=[...hist].sort((a,b)=>a-b);f=sorted[Math.floor(sorted.length/2)];
@@ -549,7 +571,7 @@ function practiceTick(ts){
   const db=levelDb();meter($('pMeter'),db);
   if(P.lock){if(ts>P.lock){P.lock=0;nextPractice();}return;}
   const on=gate(db);
-  const ch=chroma();
+  const ch=chroma();diag('dP',db,on,ch);
   if(!on){P.hold=0;$('pStatus').textContent='J\'écoute… gratte l\'accord';$('pStatus').style.color='';$('pNotes').innerHTML=notesHtml(P.cur);return;}
   const res=judge(ch,P.cur);
   $('pNotes').innerHTML=notesHtml(P.cur,ch,res);
@@ -617,7 +639,7 @@ function chronoTick(ts){
     C.nextClick+=C.beat;
   }
   const t=now-C.t0;
-  const db=levelDb();meter($('cMeter'),db);const on=gate(db);const ch=chroma();
+  const db=levelDb();meter($('cMeter'),db);const on=gate(db);const ch=chroma();diag('dC',db,on,ch);
   if(t<C.countIn){
     if(C.cur!==-1){C.cur=-1;showChronoChord(0);$('cProg').textContent='Prépare-toi';}
     const left=Math.max(1,4-Math.floor(Math.max(0,t)/C.beat));
