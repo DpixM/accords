@@ -113,7 +113,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v4.0</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v4.1</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -134,7 +134,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   <button class="tile" data-go="tabs"><span class="ic">📜</span><div><b>Tabs</b><span>Importe tes tabs (Guitar Pro…), la tab avance quand tu joues</span></div></button>
   <button class="tile" data-go="settings"><span class="ic">⚙️</span><div><b>Réglages</b><span>Sévérité, sons</span></div></button>
   <p class="hint" id="weakLine"></p>
-  <p class="ver" style="text-align:center">v4.0</p>
+  <p class="ver" style="text-align:center">v4.1</p>
 </section>
 
 <!-- REVISION -->
@@ -151,6 +151,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
   <header><button class="back" data-go="hub">‹</button><h1>Le manche</h1></header>
   <div class="card"><p class="hint" style="margin:0">L'app te donne une note et une corde (« Do sur la corde de Sol »). Tu la trouves et tu la joues. Comme ton exercice papier, mais il vérifie au son.</p></div>
   <div class="card"><p class="lbl">Cordes (touche pour enlever)</p><div class="chips" id="maStr"></div></div>
+  <div class="card"><p class="lbl">Son de la note</p><div class="seg" id="maEarSeg"><button data-v="1">Jouée à chaque fois</button><button data-v="0">Seulement si je demande</button></div><p class="hint" style="margin-top:8px">L'app joue la note à trouver (pendant ce temps elle n'écoute pas, pour ne pas s'entendre elle-même).</p></div>
   <div class="card"><p class="lbl">Notes</p><div class="seg" id="maNotes"><button data-v="0">Naturelles (Do Ré Mi…)</button><button data-v="1">Toutes (avec # et b)</button></div></div>
   <button class="big" id="maStart">C'est parti</button>
   <button class="big sec" id="maMap">🗺️ Voir la carte du manche</button>
@@ -167,7 +168,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="status" id="maStatus">J'écoute…</div>
     <div class="meter"><i id="maMeter"></i><b></b></div><div class="diagline" id="dMa"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
   </div>
-  <div class="row"><button class="big sec" id="maShow">👀 Montre-moi</button><button class="big sec" id="maSkip">Passer ›</button></div>
+  <div class="row"><button class="big sec" id="maEar" style="font-size:16px">🔊 Écouter</button><button class="big sec" id="maShow" style="font-size:16px">👀 Montre</button><button class="big sec" id="maSkip" style="font-size:16px">Passer ›</button></div>
 </section>
 
 <!-- CARTE DU MANCHE -->
@@ -211,6 +212,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div id="qCountIn" class="count" style="display:none"></div>
     <div class="chordName" id="qNote" style="font-size:52px">La</div>
     <div class="chordFr" id="qWhere">corde Mi grave · case 5</div>
+    <div style="text-align:center;margin:6px 0"><button class="pill" id="qEar">🔊 Écouter la note</button></div>
     <div class="fb" id="qFb"></div>
     <div class="status" id="qStatus">J'écoute…</div>
     <div class="meter"><i id="qMeter"></i><b></b></div><div class="diagline" id="dQ"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
@@ -279,7 +281,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="status" id="tpStatus">J'écoute…</div>
     <div class="meter"><i id="tpMeter"></i><b></b></div><div class="diagline" id="dTp"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
   </div>
-  <button class="big sec" id="tpSkip">Passer la note ›</button>
+  <div class="row" id="tpBtns"><button class="big sec" id="tpEar">🔊 Écouter</button><button class="big sec" id="tpSkip">Passer ›</button></div>
   <div class="card" id="tpRes" style="display:none">
     <div class="score"><div class="g"><b id="tpOk">0</b>justes</div><div class="r"><b id="tpKo">0</b>ratées</div></div>
     <p class="hint" id="tpResTxt" style="text-align:center"></p>
@@ -367,7 +369,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
     <div class="status" id="pStatus">J'écoute…</div>
     <div class="meter"><i id="pMeter"></i><b></b></div><div class="diagline" id="dP"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
   </div>
-  <div class="row"><button class="big sec" id="pSkip">Passer ›</button></div>
+  <div class="row"><button class="big sec" id="pEar">🔊 Écouter</button><button class="big sec" id="pSkip">Passer ›</button></div>
 </section>
 
 <!-- SETUP CHRONO -->
@@ -435,7 +437,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 </div>
 <script>
 'use strict';
-const VERSION='v4.0';
+const VERSION='v4.1';
 
 /* ===================== DONNÉES ===================== */
 const PC_EN=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
@@ -586,9 +588,12 @@ const A={ctx:null,an:null,stream:null,fd:null,td:null,noise:-80,thr:-75,dead:0,k
 function ensureCtx(){
   try{if(!A.ctx) A.ctx=new (window.AudioContext||window.webkitAudioContext)();
     if(A.ctx.state!=='running') A.ctx.resume().catch(()=>{});}catch(e){}
-  const o=document.getElementById('tapOv');if(o&&A.ctx&&A.ctx.state==='running') o.style.display='none';
+  const o=document.getElementById('tapOv');if(o&&A.ctx&&A.ctx.state==='running'&&o.dataset.mode==='resume') o.style.display='none';
 }
 ['pointerdown','touchend','click'].forEach(ev=>document.addEventListener(ev,ensureCtx,true));
+document.addEventListener('click',e=>{const ov=e.target.closest('#tapOv');if(!ov)return;
+  if(ov.dataset.mode==='dead'){resetMic();mic(null).then(()=>{A.dead=0;NS.hist=[];});}
+  ov.dataset.mode='';ov.style.display='none';});
 /* --- mesure du bruit de la pièce (on ne joue pas pendant 1,5 s) --- */
 function startCal(tries){A.cal={t0:performance.now(),n:0,sum:null,mx:null,tries:tries||0,last:null};}
 function calStep(){
@@ -599,11 +604,12 @@ function calStep(){
   if(!C.sum||db<C.minDb-8){C.sum=new Float32Array(hi);C.minDb=db;C.n=0;}
   if(db<C.minDb) C.minDb=db;
   if(C.maxDb==null||db>C.maxDb) C.maxDb=db;
+  {const td=A.td,N=td.length;let e1=0,e0=0;for(let i=N-1024;i<N;i++)e1+=td[i]*td[i];for(let i=N-8192;i<N-4096;i++)e0+=td[i]*td[i];if(C.n>0&&e1/1024>3*e0/4096&&db>C.minDb+6)C.onset=true;}
   // on ne garde que les moments calmes (si tu grattes pendant la mesure, ces moments sont ignorés)
   if(db<=C.minDb+8){for(let i=0;i<hi;i++) C.sum[i]+=Math.max(A.fd[i],-130);C.n++;}
   const el=performance.now()-C.t0;
   if((el>1000&&C.n>=8)||el>4000){
-    A.calWarn=C.maxDb-C.minDb>12;
+    A.calWarn=C.maxDb-C.minDb>12||!!C.onset;
     if(C.n>=4&&!A.calWarn){const base=new Float32Array(hi);for(let i=0;i<hi;i++) base[i]=C.sum[i]/C.n+3;
       const ns=new Float32Array(hi);for(let i=0;i<hi;i++){let m=-200;for(let j=Math.max(0,i-3);j<=Math.min(hi-1,i+3);j++) if(base[j]>m)m=base[j];ns[i]=m;}
       A.nspec=ns;A.noise=C.minDb;}
@@ -622,7 +628,7 @@ function strumCheck(db,ts){
   return ts-A.lastStrum<2500;
 }
 document.addEventListener('click',e=>{if(e.target.closest('[data-cal]')) startCal();});
-function resetMic(){try{if(A.stream)A.stream.getTracks().forEach(t=>t.stop());}catch(e){}A.stream=null;A.an=null;A.an2=null;A.noise=-80;}
+function resetMic(){try{if(A.stream)A.stream.getTracks().forEach(t=>{t.onended=t.onmute=null;t.stop();});}catch(e){}A.stream=null;A.an=null;A.an2=null;A.noise=-80;A.dead=0;}
 function showSens(){document.querySelectorAll('.sensV').forEach(e=>e.textContent=cfg.sens);
   document.querySelectorAll('[data-sens]').forEach(b=>b.disabled=!!cfg.lockSens);
   document.querySelectorAll('[data-lock]').forEach(b=>b.textContent=cfg.lockSens?'🔒':'🔓');}
@@ -631,6 +637,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-sens]');if
 async function mic(errEl){
   try{
     ensureCtx();
+    // si iOS a coupé le micro (autre appli, appel, mise en veille…), on le relance proprement
+    const tr=A.stream&&A.stream.getAudioTracks()[0];
+    if(A.an&&(!tr||tr.readyState==='ended'||tr.muted||A.dead>40)) resetMic();
     if(!A.an){
       if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('nomedia');
       A.stream=await navigator.mediaDevices.getUserMedia({audio:cfg.micMode?{echoCancellation:true,noiseSuppression:false,autoGainControl:true}:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
@@ -642,7 +651,8 @@ async function mic(errEl){
       let node=src;for(const [ty,f] of [['highpass',80],['highpass',80],['lowpass',1300],['lowpass',1300]]){const b=A.ctx.createBiquadFilter();b.type=ty;b.frequency.value=f;node.connect(b);node=b;}
       A.an2=A.ctx.createAnalyser();A.an2.fftSize=8192;node.connect(A.an2);A.td2=new Float32Array(8192);
       A.fd=new Float32Array(A.an.frequencyBinCount);A.td=new Float32Array(A.an.fftSize);
-      startCal();
+      startCal();A.dead=0;
+      try{const t=A.stream.getAudioTracks()[0];t.onended=()=>{A.dead=999;};t.onmute=()=>{A.dead=999;};t.onunmute=()=>{A.dead=0;};}catch(e){}
     }
     if(A.ctx.state!=='running'){try{await Promise.race([A.ctx.resume(),new Promise(r=>setTimeout(r,400))]);}catch(e){}}
     if(errEl) errEl.style.display='none';
@@ -661,6 +671,24 @@ function beep(freqs,dur,vol,when){
     o.connect(g).connect(A.ctx.destination);o.start(t);o.stop(t+dur+0.02);}
 }
 const ding=()=>{if(cfg.ding) beep([2093,3136],0.25,0.25);};
+
+/* ===================== SON D'UNE NOTE (corde pincée synthétique) ===================== */
+const PB={};
+function pluckBuf(midi){
+  if(PB[midi]) return PB[midi];
+  const c=A.ctx,sr=c.sampleRate,f=440*Math.pow(2,(midi-69)/12),N=Math.max(2,Math.round(sr/f)),len=Math.round(sr*1.4);
+  const buf=c.createBuffer(1,len,sr),d=buf.getChannelData(0),ring=new Float32Array(N);
+  for(let i=0;i<N;i++) ring[i]=Math.random()*2-1;
+  let p=0,mx=0;for(let i=0;i<len;i++){const a=ring[p],b=ring[(p+1)%N];d[i]=a;ring[p]=0.997*0.5*(a+b);p=(p+1)%N;if(Math.abs(a)>mx)mx=Math.abs(a);}
+  for(let i=0;i<len;i++){const env=i<len*0.75?1:1-(i-len*0.75)/(len*0.25);d[i]=d[i]/mx*env;} // fin en douceur
+  return PB[midi]=buf;
+}
+function playNotes(mids,gap){
+  drumInit();const c=A.ctx;if(c.state!=='running')c.resume();
+  const t=c.currentTime+0.03;
+  mids.forEach((m,i)=>{const src=c.createBufferSource();src.buffer=pluckBuf(m);const g=c.createGain();g.gain.value=0.8;src.connect(g).connect(master);src.start(t+i*(gap||0));});
+  A.muteUntil=Math.max(A.muteUntil||0,t+(mids.length-1)*(gap||0)+1.5);NS.hist=[];
+}
 
 /* ===================== RYTHME (métronome / beats) ===================== */
 /* Les sons sont faits exprès hors de la zone que le micro analyse (80–1300 Hz) :
@@ -720,12 +748,14 @@ function rhRenderSheet(){
 
 /* niveau RMS (dB) sur les ~85 dernières ms */
 function levelDb(){
+  if(!A.an){A.dead++;return -120;}
   A.an.getFloatTimeDomainData(A.td);const n=4096,st=A.td.length-n;let s=0;
   for(let i=st;i<A.td.length;i++)s+=A.td[i]*A.td[i];
   return 10*Math.log10(s/n+1e-12);
 }
 /* bruit de fond qui s'adapte tout seul */
 function gate(db){
+  if(A.ctx&&A.muteUntil&&A.ctx.currentTime<A.muteUntil) return false; // l'app joue elle-même une note : on n'écoute pas
   if(db<A.noise) A.noise=A.noise*0.7+db*0.3; else A.noise+=0.0008*(db-A.noise);
   A.noise=Math.max(A.noise,-100);
   A.thr=Math.max(A.noise+Math.max(1,13-cfg.sens*1.2)+(cfg.sev-1)*2,-95);
@@ -737,7 +767,11 @@ function meter(el,db){el.style.width=pct(db)+'%';el.classList.toggle('on',db>A.t
 function diag(id,db,on,ch,extra){
   const el=$(id);if(!el||!A.ctx) return;
   const st=A.ctx.state;
-  document.getElementById('tapOv').style.display=st==='running'?'none':'flex';
+  const ov=document.getElementById('tapOv');
+  // (on ne réécrit le texte que s'il change, sinon le toucher ne passe pas)
+  if(st!=='running'){if(ov.dataset.mode!=='resume'){ov.dataset.mode='resume';ov.innerHTML='🎤<br>Touche l\'écran<br>pour activer le micro';}ov.style.display='flex';}
+  else if(A.dead>45){if(ov.dataset.mode!=='dead'){ov.dataset.mode='dead';ov.innerHTML='🎤<br>Le micro s\'est coupé<br><small style="font-weight:400;font-size:16px">(iOS l\'arrête parfois)</small><br>Touche l\'écran pour le relancer';}ov.style.display='flex';}
+  else ov.style.display='none';
   if(db<-115) A.dead++; else A.dead=0;
   let notes='';
   if(ch&&on){const l=[...Array(12).keys()].filter(p=>ch[p]>0.35).sort((a,b)=>ch[b]-ch[a]).slice(0,5);notes=' · notes : '+(l.map(p=>PC_FR[p]).join(' ')||'–');}
@@ -749,6 +783,7 @@ function diag(id,db,on,ch,extra){
 /* chroma : quelle "quantité" de chaque note (Do…Si) on entend */
 let chSm=new Float32Array(12);
 function chroma(){
+  if(!A.an) return chSm;
   A.an.getFloatFrequencyData(A.fd);
   const db=A.fd,sr=A.ctx.sampleRate,N=A.an.fftSize,bh=sr/N;
   const lo=Math.floor(70/bh),hi=Math.ceil(1500/bh),W=Math.round(25/bh);
@@ -854,7 +889,7 @@ function notesHtml(c,ch,res){
 
 /* ===================== BOUCLES ===================== */
 let raf=0,loopFn=null,wake=null;
-function startLoop(fn){loopFn=fn;let last=0;const t=ts=>{if(!loopFn)return;if(ts-last>45){last=ts;loopFn(ts);}raf=requestAnimationFrame(t);};raf=requestAnimationFrame(t);
+function startLoop(fn){loopFn=fn;let last=0;const t=ts=>{if(!loopFn)return;if(ts-last>45){last=ts;try{loopFn(ts);}catch(e){console.warn(e);}}raf=requestAnimationFrame(t);}; /* une erreur ne coupe jamais la boucle */ raf=requestAnimationFrame(t);
   try{if(navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>wake=w).catch(()=>{});}catch(e){}}
 function stopLoops(){loopFn=null;cancelAnimationFrame(raf);if(chrono) chrono.stop=true;try{if(wake){wake.release();wake=null;}}catch(e){}}
 
@@ -952,6 +987,7 @@ $('pStart').onclick=async()=>{
   resetChroma();
   startLoop(practiceTick);
 };
+$('pEar').onclick=()=>{if(P&&P.cur)playNotes(P.cur.f.map((f,i)=>f<0?null:I().open[i]+f).filter(x=>x!=null),0.045);};
 $('pBack').onclick=()=>go(P&&P.rev?'revision':'practiceSetup');
 $('pSkip').onclick=()=>{if(!P)return;addStat(P.cur.key,false);P.seq.push(P.cur);P.hits.push(false);nextPractice();};
 function showPractice(){
@@ -1038,6 +1074,8 @@ function showChronoChord(i){
 }
 function chronoTick(ts){
   const C=chrono;if(!C||C.stop) return;
+  if(A.cal){levelDb();calStep();C.t0=A.ctx.currentTime+0.4;C.nextClick=C.t0;
+    $('cCountWrap').style.display='block';$('cCountWrap').innerHTML='<span style="font-size:22px">🤫 silence…<br>je mesure le bruit</span>';$('cName').style.display='none';return;}
   const now=A.ctx.currentTime;
   // métronome programmé un peu en avance
   const total=C.countIn+C.dur*C.seq.length;
@@ -1162,6 +1200,7 @@ function renderMaSetup(){
   $('maStr').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{let o=store.get('maOff_'+cfg.inst,[]);const i=+b.dataset.i;
     if(o.includes(i)) o=o.filter(x=>x!==i); else {if(I().open.length-o.length<=1) return;o.push(i);} store.set('maOff_'+cfg.inst,o);b.classList.toggle('on');});
   segInit('maNotes',cfg.maAll||0,v=>{cfg.maAll=+v;saveCfg();});
+  segInit('maEarSeg',cfg.maEar==null?1:cfg.maEar,v=>{cfg.maEar=+v;saveCfg();});
 }
 function maNext(){
   const off=store.get('maOff_'+cfg.inst,[]);const strs=I().open.map((o,i)=>i).filter(i=>!off.includes(i));
@@ -1172,9 +1211,13 @@ function maNext(){
   $('maNote').textContent=PC_FR[pc];$('maStrTxt').textContent='sur la corde de '+strFull(s);
   $('maFb').innerHTML=fretboard({fmin:0,fmax:12,hl:s});
   $('maStatus').textContent='J\'écoute… joue la note';$('maStatus').style.color='';$('maCount').textContent=MA.done+' ✓';
+  if((cfg.maEar==null?1:cfg.maEar)&&A.ctx) setTimeout(maAuto,250);
 }
+function maAuto(){if(current!=='ma')return;if(A.cal||!A.an){setTimeout(maAuto,300);return;}maEar();}
+function maEar(){if(MA.cur)playNotes([MA.cur.mids[0]]);}
+$('maEar').onclick=maEar;
 $('maStart').onclick=async()=>{go('ma');MA.done=0;MA.cur=null;maNext();if(!await mic($('errMa')))return;resetChroma();startLoop(maTick);};
-$('maShow').onclick=()=>{if(!MA.cur)return;MA.shown=true;$('maFb').innerHTML=fretboard({fmin:0,fmax:12,hl:MA.cur.s,dots:MA.cur.frets.map(f=>({s:MA.cur.s,f,st:'ans',label:PC_FR[MA.cur.pc]}))});
+$('maShow').onclick=()=>{if(!MA.cur)return;MA.shown=true;maEar();$('maFb').innerHTML=fretboard({fmin:0,fmax:12,hl:MA.cur.s,dots:MA.cur.frets.map(f=>({s:MA.cur.s,f,st:'ans',label:PC_FR[MA.cur.pc]}))});
   $('maStatus').textContent='Là ! Joue-la maintenant';$('maStatus').style.color='var(--blue)';};
 $('maSkip').onclick=()=>{if(MA.cur) addNStat(MA.cur.s+'-'+MA.cur.pc,false);maNext();};
 function maTick(ts){
@@ -1330,13 +1373,14 @@ async function startSeq(o){
   const st=cfg[o.key+'_']||{mode:0,bpm:60,npb:1};
   SQ=Object.assign(o,{pos:null,idx:0,hits:new Array(o.g.notes.length).fill(null),mode:st.mode,bpm:st.bpm,npb:st.npb,stop:false,t0:0,cur:-1,startTs:0});
   go('seq');$('qTitle').textContent=o.title;$('qRes').style.display='none';$('qCard').style.display='';
-  $('qTimebar').style.display=SQ.mode?'':'none';
+  $('qTimebar').style.display=SQ.mode?'':'none';$('qEar').style.display=SQ.mode?'none':'';
   seqRender();
   if(!await mic($('errSeq'))) return;
   resetChroma();NS.hist=[];
   if(SQ.mode){drumInit();const beat=60/SQ.bpm;SQ.beat=beat;SQ.slot=beat/SQ.npb;SQ.countIn=beat*4;SQ.t0=A.ctx.currentTime+0.4;SQ.nextClick=SQ.t0;}
   startLoop(seqTick);
 }
+$('qEar').onclick=()=>{if(SQ&&!SQ.mode){const n=SQ.g.notes[Math.min(SQ.idx,SQ.g.notes.length-1)];playNotes([n.m]);}};
 $('qBack').onclick=()=>{if(SQ)go(SQ.back);};
 $('qAgain').onclick=()=>{if(SQ)startSeq(SQ);};
 $('qFaster').onclick=()=>{if(!SQ)return;const st=cfg[SQ.key+'_'];st.bpm=Math.min(200,st.bpm+5);saveCfg();startSeq(SQ);};
@@ -1551,6 +1595,7 @@ function tabStrip(ev,cur,hits){
 }
 /* ---------- jeu ---------- */
 let TP=null;
+$('tpEar').onclick=()=>{if(TP&&!TP.mode){const e=TP.ev[Math.min(TP.idx,TP.ev.length-1)];playNotes(e.notes.map(n=>n.m),0.04);}};
 $('tsStart').onclick=()=>startTabPlay();
 $('tpAgain').onclick=()=>startTabPlay();
 $('tpFaster').onclick=()=>{cfg.tb_.spd=Math.min(100,cfg.tb_.spd+5);saveCfg();startTabPlay();};
@@ -1562,7 +1607,7 @@ async function startTabPlay(){
   const t0tick=ev[0].tick;
   TP={ev,idx:0,hits:new Array(ev.length).fill(null),mode:st.mode,bpm,stop:false,times:ev.map(e=>(e.tick-t0tick)*secPerTick),startTs:0,cur:-1};
   if(TB.kind==='txt'){TP.times=ev.map((e,i)=>i*60/bpm/2);} // tab texte : 2 notes par temps
-  go('tabPlay');$('tpTitle').textContent=TB.name;$('tpRes').style.display='none';$('tpCard').style.display='';$('tpSkip').style.display=st.mode?'none':'';
+  go('tabPlay');$('tpTitle').textContent=TB.name;$('tpRes').style.display='none';$('tpCard').style.display='';$('tpBtns').style.display=st.mode?'none':'';
   $('tpTimebar').style.display=st.mode?'':'none';tpRender();
   if(!await mic($('errTp'))) return;
   resetChroma();NS.hist=[];
@@ -1622,7 +1667,7 @@ function tpTick(ts){
 }
 function tpFinish(ts){
   stopLoops();TP.stop=true;const n=TP.ev.length,ok=TP.hits.filter(x=>x===true).length;TP.idx=n-1;tpRender();
-  $('tpRes').style.display='';$('tpSkip').style.display='none';$('tpOk').textContent=ok;$('tpKo').textContent=n-ok;const pc=Math.round(ok/n*100);
+  $('tpRes').style.display='';$('tpBtns').style.display='none';$('tpOk').textContent=ok;$('tpKo').textContent=n-ok;const pc=Math.round(ok/n*100);
   if(!TP.mode){$('tpResTxt').textContent='Fini en '+((ts-TP.startTs)/1000).toFixed(1).replace('.',',')+' s. Quand ça roule, passe en mode Tempo.';$('tpFaster').style.display='none';}
   else{const spd=cfg.tb_.spd;$('tpResTxt').textContent=pc+'% à '+spd+' % de la vitesse ('+Math.round(TP.bpm)+' BPM). '+(pc>=90?'Excellent : accélère !':pc>=70?'Pas mal, refais-le à la même vitesse.':'Trop rapide pour l\'instant : baisse la vitesse.');
     $('tpFaster').style.display=pc>=90&&spd<100?'':'none';$('tpFaster').textContent='Rejouer à '+Math.min(100,spd+5)+' %';}
