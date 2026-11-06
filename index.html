@@ -122,7 +122,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.1</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.2</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -131,7 +131,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 
 <!-- HUB -->
 <section class="screen" id="s-hub">
-  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.1</span><button class="pill" id="switchInst">Changer</button></header>
+  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.2</span><button class="pill" id="switchInst">Changer</button></header>
   <button class="tile" data-go="session" style="background:linear-gradient(135deg,#3a2a0c,#1e2129);border:1px solid #5a4214"><span class="ic">📅</span><div><b>Séance du jour</b><span id="hubStreak">10–15 min, je te guide étape par étape</span></div></button>
   <details class="grp" data-g="play" open><summary>🎸 Jouer</summary>
     <button class="tile" data-go="practiceSetup"><span class="ic">🎯</span><div><b>Accords – entraînement</b><span>Tu joues, ça passe au suivant quand c'est bon</span></div></button>
@@ -458,7 +458,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
     <div class="card"><div class="progress"><span id="ryProg"></span><span id="ryBeat"></span></div>
       <div id="ryCountIn" class="count" style="display:none"></div>
       <div id="ryLane" style="position:relative;height:96px;overflow:hidden;background:var(--card2);border-radius:12px;margin:10px 0"></div>
-      <p class="hint" style="text-align:center;margin:0 0 6px">Gratte quand la flèche touche la <b style="color:var(--acc)">ligne orange</b> (pile sur le « tac »)</p>
+      <p class="hint" style="text-align:center;margin:0 0 6px">Gratte quand la flèche touche la <b style="color:var(--acc)">ligne orange</b> (pile sur le « tac »). Le cadre clignote en <b style="color:var(--blue)">bleu</b> à chaque coup que j'entends.</p>
       <div id="ryGrid" style="margin:10px 0"></div>
       <div class="status" id="ryStatus"></div>
       <div class="meter"><i id="ryMeter"></i><b></b></div><div class="diagline" id="dRy"></div></div>
@@ -684,7 +684,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 </div>
 <script>
 'use strict';
-const VERSION='v5.1';
+const VERSION='v5.2';
 document.addEventListener('DOMContentLoaded',()=>{});
 
 /* ===================== DONNÉES ===================== */
@@ -1055,7 +1055,10 @@ function levelDb(){
 /* bruit de fond qui s'adapte tout seul */
 function gate(db){
   if(A.ctx&&A.muteUntil&&A.ctx.currentTime<A.muteUntil) return false; // l'app joue elle-même une note : on n'écoute pas
-  if(db<A.noise) A.noise=A.noise*0.7+db*0.3; else A.noise+=0.0008*(db-A.noise);
+  // le « bruit de fond » s'adapte selon le TEMPS écoulé (pas selon le nombre d'images : l'iPhone peut tourner à 120 images/s)
+  const tn=performance.now(),k=Math.min(4,Math.max(0,(tn-(A.gT||tn))/50));A.gT=tn;
+  if(db<A.noise) A.noise+=(1-Math.pow(0.7,k))*(db-A.noise);
+  else if(!A.freezeNoise) A.noise+=0.0008*k*(db-A.noise);
   A.noise=Math.max(A.noise,-100);
   A.thr=Math.max(A.noise+Math.max(1,13-cfg.sens*1.2)+(cfg.sev-1)*2,-95);
   return db>A.thr;
@@ -1195,7 +1198,7 @@ function notesHtml(c,ch,res){
 let raf=0,loopFn=null,wake=null;
 function startLoop(fn,minDt){loopFn=fn;let last=0;const md=minDt==null?45:minDt;const t=ts=>{if(!loopFn)return;if(ts-last>md){last=ts;try{loopFn(ts);}catch(e){console.warn(e);}}raf=requestAnimationFrame(t);}; /* une erreur ne coupe jamais la boucle */ raf=requestAnimationFrame(t);
   try{if(navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>wake=w).catch(()=>{});}catch(e){}}
-function stopLoops(){loopFn=null;cancelAnimationFrame(raf);if(chrono) chrono.stop=true;try{if(wake){wake.release();wake=null;}}catch(e){}}
+function stopLoops(){A.freezeNoise=false;loopFn=null;cancelAnimationFrame(raf);if(chrono) chrono.stop=true;try{if(wake){wake.release();wake=null;}}catch(e){}}
 
 /* ===================== ACCORDEUR ===================== */
 function yin(buf,sr){
@@ -2490,7 +2493,7 @@ async function startRhythm(pi){
   $('rySetup').style.display='none';$('ryRun').style.display='';$('ryRes').style.display='none';
   ryGrid(-1);
   if(!await mic($('errRy')))return;drumInit();resetChroma();
-  RY.lat=cfg.lat==null?0.08:cfg.lat;RY.phase=cfg.latManual?'play':'lat';if(cfg.latManual){RY.t0=A.ctx.currentTime+0.4;RY.nextClick=RY.t0;}RY.calib=false;RY.latT0=0;RY.latD=[];RY.t0=0;
+  A.freezeNoise=true;RY.lat=cfg.lat==null?0.08:cfg.lat;RY.phase=cfg.latManual?'play':'lat';if(cfg.latManual){RY.t0=A.ctx.currentTime+0.4;RY.nextClick=RY.t0;}RY.calib=false;RY.latT0=0;RY.latD=[];RY.t0=0;
   startLoop(ryTick,0);
 }
 function ryGrid(curSlot){
@@ -2546,12 +2549,12 @@ function ryTick(ts){
   // détection du coup de gratte (instant précis)
   if(RY.calib){if(gate(db)&&ryOnset()&&now-RY.lastOn>0.25){RY.lastOn=now;const k=Math.round(tt/RY.beat);const d=tt-k*RY.beat;if(k>=0&&k<8&&Math.abs(d)<0.35){RY.cal.push(d);const e=RY.exp[k];if(e){e.hit=true;}}}
     $('ryStatus').textContent='🎯 Gratte pile sur chaque « tac » ('+RY.cal.length+'/8)';$('ryStatus').style.color='var(--blue)';ryLane(tt);if(tt>RY.total+0.4)ryCalEnd();return;}
-  if(gate(db)&&ryOnset()&&now-RY.lastOn>Math.min(0.15,RY.slot*0.6)){RY.lastOn=now;const ot=tt-RY.lat;
+  if(gate(db)&&ryOnset()&&now-RY.lastOn>Math.min(0.15,RY.slot*0.6)){RY.lastOn=now;const ot=tt-RY.lat;RY.flash=now+0.1;
     let best=null;for(const e of RY.exp){if(e.hit===true)continue;const d=ot-e.t;if(Math.abs(d)<=tol&&(!best||Math.abs(d)<Math.abs(best.d)))best={e,d};}
     if(best){best.e.hit=true;best.e.d=best.d;$('ryStatus').textContent=Math.abs(best.d)<0.035?'✓ pile':best.d<0?'✓ un poil en avance':'✓ un poil en retard';$('ryStatus').style.color='var(--ok)';}
     else if(ot>-0.05){RY.extra++;$('ryStatus').textContent='✗ coup en trop';$('ryStatus').style.color='var(--ko)';}}
   for(const e of RY.exp) if(e.hit==null&&tt>e.t+tol) e.hit=false;
-  ryLane(tt);
+  ryLane(tt);$('ryLane').style.boxShadow=now<(RY.flash||0)?'inset 0 0 0 3px #4fa3ff':'none'; // bord bleu = « j'ai entendu un coup »
   const slotNow=Math.floor(tt/RY.slot);if(slotNow!==RY.cur){RY.cur=slotNow;ryGrid(slotNow);}
   $('ryProg').textContent='Mesure '+Math.min(RY.bars,Math.floor(tt/(4*RY.beat))+1)+' / '+RY.bars;$('ryBeat').textContent=RY.bpm+' BPM';
 }
