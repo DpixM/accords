@@ -122,7 +122,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.0</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.1</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -131,7 +131,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 
 <!-- HUB -->
 <section class="screen" id="s-hub">
-  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.0</span><button class="pill" id="switchInst">Changer</button></header>
+  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.1</span><button class="pill" id="switchInst">Changer</button></header>
   <button class="tile" data-go="session" style="background:linear-gradient(135deg,#3a2a0c,#1e2129);border:1px solid #5a4214"><span class="ic">📅</span><div><b>Séance du jour</b><span id="hubStreak">10–15 min, je te guide étape par étape</span></div></button>
   <details class="grp" data-g="play" open><summary>🎸 Jouer</summary>
     <button class="tile" data-go="practiceSetup"><span class="ic">🎯</span><div><b>Accords – entraînement</b><span>Tu joues, ça passe au suivant quand c'est bon</span></div></button>
@@ -153,6 +153,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
   </details>
   <details class="grp" data-g="tools" open><summary>🧰 Outils</summary>
     <button class="tile" data-go="tuner"><span class="ic">🎚️</span><div><b>Accordeur</b><span id="hubTun">À faire en premier, sinon rien n'est reconnu</span></div></button>
+    <button class="tile" data-go="finder"><span class="ic">🔍</span><div><b>Trouve mon accord</b><span>Touche le manche comme tes doigts : je te dis quel accord c'est</span></div></button>
     <button class="tile" data-go="dict"><span class="ic">📖</span><div><b>Dictionnaire d'accords</b><span>180 accords à voir, écouter, ajouter à ta liste</span></div></button>
     <button class="tile" data-go="progress"><span class="ic">📈</span><div><b>Mes progrès</b><span>Jours d'affilée, temps de jeu, records</span></div></button>
     <button class="tile" data-go="settings"><span class="ic">⚙️</span><div><b>Réglages &amp; sauvegarde</b><span>Accordage, gaucher, sévérité, sauvegarder mes données</span></div></button>
@@ -428,8 +429,8 @@ details.grp:not([open])>summary::after{content:' ▸';}
   <div id="omRun" style="display:none">
     <div class="card" id="omCard">
       <div class="count" id="omTime" style="font-size:64px">60</div>
-      <div style="display:flex;gap:8px"><div style="flex:1;text-align:center;border-radius:14px;padding:6px" id="omBoxA"><div class="chordName" id="omNA" style="font-size:40px">C</div><div class="diag" id="omDA"></div></div>
-        <div style="flex:1;text-align:center;border-radius:14px;padding:6px" id="omBoxB"><div class="chordName" id="omNB" style="font-size:40px">G</div><div class="diag" id="omDB"></div></div></div>
+      <div style="text-align:center;border-radius:14px;padding:6px" id="omBox"><div class="hint" style="margin:0">Joue maintenant</div><div class="chordName" id="omNow">C</div><div class="diag" id="omDNow"></div></div>
+      <div class="next">Ensuite : <b id="omNext">G</b> <span id="omNextMini" style="display:inline-block;vertical-align:middle;width:70px"></span></div>
       <div class="score" style="margin-top:6px"><div class="g"><b id="omCount">0</b>changements</div></div>
       <div class="status" id="omStatus"></div>
       <div class="meter"><i id="omMeter"></i><b></b></div><div class="diagline" id="dOm"></div>
@@ -448,10 +449,16 @@ details.grp:not([open])>summary::after{content:' ▸';}
     <div class="card"><p class="lbl">Tempo : <b id="ryBpmV" style="color:var(--txt);font-size:18px">70</b> BPM</p><div class="row"><button class="pill" id="ryBm">− 5</button><button class="pill" id="ryBp">+ 5</button></div>
       <p class="lbl" style="margin-top:12px">Nombre de mesures</p><div class="seg" id="ryBars"><button data-v="4">4</button><button data-v="8">8</button><button data-v="16">16</button></div></div>
     <button class="big" id="ryStart">C'est parti</button>
+    <div class="card" style="margin-top:12px"><p class="lbl">🎯 Synchronisation</p><p class="hint" id="ryLatInfo" style="margin-top:0"></p>
+      <button class="big sec" id="ryCal">🎯 Calibrer mon timing</button>
+      <button class="pill" id="ryCalReset" style="margin-top:8px">↺ Revenir au réglage automatique</button>
+      <p class="hint">Si l'app te dit « en retard » ou « en avance » alors que tu es pile sur le métronome : calibre. Tu grattes 8 fois pile sur les « tac » et l'app apprend le décalage de ton iPhone (haut-parleur + micro).</p></div>
   </div>
   <div id="ryRun" style="display:none">
     <div class="card"><div class="progress"><span id="ryProg"></span><span id="ryBeat"></span></div>
       <div id="ryCountIn" class="count" style="display:none"></div>
+      <div id="ryLane" style="position:relative;height:96px;overflow:hidden;background:var(--card2);border-radius:12px;margin:10px 0"></div>
+      <p class="hint" style="text-align:center;margin:0 0 6px">Gratte quand la flèche touche la <b style="color:var(--acc)">ligne orange</b> (pile sur le « tac »)</p>
       <div id="ryGrid" style="margin:10px 0"></div>
       <div class="status" id="ryStatus"></div>
       <div class="meter"><i id="ryMeter"></i><b></b></div><div class="diagline" id="dRy"></div></div>
@@ -484,6 +491,26 @@ details.grp:not([open])>summary::after{content:' ▸';}
     <div class="row" style="margin-top:12px"><button class="big sec" id="teNext" style="font-size:16px">Note suivante ›</button><button class="big sec" id="teDelCol" style="font-size:16px">🗑 Colonne</button></div>
     <button class="big sec" id="teIns" style="font-size:16px">➕ Insérer une colonne ici</button></div>
   <button class="big" id="tePlay">🎸 Jouer cette tab</button>
+</section>
+
+<!-- TROUVE MON ACCORD -->
+<section class="screen" id="s-finder">
+  <header><button class="back" data-go="hub">‹</button><h1>Trouve mon accord</h1></header>
+  <div class="card"><p class="hint" style="margin:0">Touche sur le manche les cases que tu appuies sur ta guitare (une par corde). Touche à gauche du sillet pour une corde <b>à vide</b>, retouche une case pour l'enlever. Je te dis en direct ce que tu joues.</p></div>
+  <div class="card">
+    <div class="seg" id="fiRange" style="margin-bottom:10px"><button data-v="0">Cases 0–12</button><button data-v="7">Cases 7–19</button></div>
+    <div class="fb" id="fiFb" style="touch-action:manipulation"></div>
+    <div class="chips sm" id="fiStr" style="margin-top:8px;justify-content:center"></div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div class="chordName" id="fiName" style="font-size:48px">–</div>
+    <div class="chordFr" id="fiFr">Touche des cases sur le manche</div>
+    <div class="notes" id="fiNotes"></div>
+    <div class="hint" id="fiAlt"></div>
+    <div class="row"><button class="big sec" id="fiPlay">🔊 Écouter</button><button class="big sec" id="fiClear">🧹 Effacer</button></div>
+    <button class="big" id="fiSave">⭐ Garder cet accord (ma position)</button>
+    <p class="hint" id="fiSaved"></p>
+  </div>
 </section>
 
 <!-- REGLAGES -->
@@ -657,7 +684,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 </div>
 <script>
 'use strict';
-const VERSION='v5.0';
+const VERSION='v5.1';
 document.addEventListener('DOMContentLoaded',()=>{});
 
 /* ===================== DONNÉES ===================== */
@@ -812,6 +839,7 @@ function go(name){
   if(name==='ry') renderRy();
   if(name==='progress') renderProgress();
   if(name==='tabEdit') renderTabEdit();
+  if(name==='finder') renderFinder();
   if(name==='tuner') startTuner();
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b) go(b.dataset.go);});
@@ -2219,6 +2247,10 @@ function chordDict(inst){
     c.key=key;c.pcs=Q[q].iv.map(i=>(r+i)%12);c.fr=PC_FR[r]+' '+Q[q].fr;
     c.req=c.pcs.filter(p=>c.f.some((x,i)=>x>=0&&(std[i]+x)%12===p));
     out[key]=T.tuning&&T.tuning.id!=='std'?tuneChord(c,std,T.open,sh):c;}
+  // tes positions perso (Trouve mon accord) : déjà dans ton accordage
+  const CU=store.get('cust_'+inst,{});
+  for(const k in CU){const u=CU[k];const fd=autoFingers(u.f);const c={n:u.n+' ✋',r:u.r,q:u.q,f:u.f,d:fd.d,barre:fd.barre,lv:8,gen:true,key:k,fr:u.fr+' · ta position'};
+    c.pcs=Q[u.q].iv.map(i=>(u.r+i)%12);c.req=c.pcs.filter(p=>u.f.some((x,i)=>x>=0&&(T.open[i]+x)%12===p));out[k]=c;}
   return CHCACHE[ck]=out;
 }
 function myList(){return store.get('my_'+cfg.inst,[]);}
@@ -2388,11 +2420,12 @@ async function startOmRun(){
   const D=chordDict(cfg.inst),P=omPool();const ca=P.find(c=>c.key===OM.a)||D[OM.a],cb=P.find(c=>c.key===OM.b)||D[OM.b];if(!ca||!cb)return;
   OM.ca=ca;OM.cb=cb;OM.cur=0;OM.count=0;OM.acc=0;OM.lastTs=0;OM.switchTs=0;OM.t0=0;OM.done=false;
   $('omSetup').style.display='none';$('omRun').style.display='';$('omRes').style.display='none';$('omCard').style.display='';
-  $('omNA').textContent=ca.n;$('omNB').textContent=cb.n;$('omDA').innerHTML=diagram(ca,true);$('omDB').innerHTML=diagram(cb,true);
   $('omCount').textContent='0';omHl();
   if(!await mic($('errOm')))return;resetChroma();startLoop(omTick);
 }
-function omHl(){$('omBoxA').style.background=OM.cur===0?'rgba(245,165,36,.18)':'';$('omBoxB').style.background=OM.cur===1?'rgba(245,165,36,.18)':'';}
+function omHl(){const now=OM.cur===0?OM.ca:OM.cb,nx=OM.cur===0?OM.cb:OM.ca;
+  $('omNow').textContent=now.n;$('omDNow').innerHTML=diagram(now,true);$('omNext').textContent=nx.n;$('omNextMini').innerHTML=diagram(nx,true);
+  const b=$('omBox');b.classList.remove('flash');void b.offsetWidth;if(OM.count)b.classList.add('flash');}
 function omTick(ts){
   const db=levelDb();meter($('omMeter'),db);
   if(calStep()){$('omStatus').textContent='🤫 Ne joue pas… je mesure le bruit';$('omStatus').style.color='var(--blue)';return;}
@@ -2434,12 +2467,20 @@ function renderRy(){
   Object.assign(RY,store.get('ry',{}));
   $('ryPats').innerHTML=RYP.map((p,i)=>`<button class="tile" style="padding:10px 12px;margin-bottom:6px;${RY.p===i?'outline:2px solid var(--acc)':''}" data-i="${i}"><div><b style="font-size:15px">${p.fr}</b><span style="font:600 17px ui-monospace,Menlo,monospace;letter-spacing:3px;color:var(--txt)">${[...p.s].map(ryArrow).join(' ')}</span></div></button>`).join('');
   $('ryPats').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{RY.p=+b.dataset.i;store.set('ry',{p:RY.p,bpm:RY.bpm,bars:RY.bars});renderRy();});
+  $('ryLatInfo').textContent='Décalage utilisé : '+Math.round((cfg.lat==null?0.08:cfg.lat)*1000)+' ms '+(cfg.latManual?'(ton calibrage ✓)':'(mesuré automatiquement à chaque fois)');
   $('ryBpmV').textContent=RY.bpm;segInit('ryBars',RY.bars,v=>{RY.bars=+v;store.set('ry',{p:RY.p,bpm:RY.bpm,bars:RY.bars});});
 }
 $('ryBm').onclick=()=>{RY.bpm=Math.max(40,RY.bpm-5);$('ryBpmV').textContent=RY.bpm;store.set('ry',{p:RY.p,bpm:RY.bpm,bars:RY.bars});};
 $('ryBp').onclick=()=>{RY.bpm=Math.min(200,RY.bpm+5);$('ryBpmV').textContent=RY.bpm;store.set('ry',{p:RY.p,bpm:RY.bpm,bars:RY.bars});};
 $('ryBack').onclick=()=>{if($('ryRun').style.display!=='none'){stopLoops();renderRy();}else go('hub');};
-$('ryStart').onclick=()=>startRhythm();$('ryAgain').onclick=()=>startRhythm();
+$('ryStart').onclick=()=>startRhythm();
+$('ryCalReset').onclick=()=>{delete cfg.latManual;saveCfg();renderRy();};
+$('ryCal').onclick=async()=>{
+  go('ry');rhStop();Object.assign(RY,{pat:'D.D.D.D.',per:2,beat:0.75,slot:0.375,exp:[],extra:0,stop:false,calib:true,cal:[],lastOn:-1,bars:2});
+  RY.total=8*RY.beat;for(let k=0;k<8;k++)RY.exp.push({t:k*RY.beat,c:'D',hit:null,d:0});
+  $('rySetup').style.display='none';$('ryRun').style.display='';$('ryRes').style.display='none';ryGrid(-1);
+  if(!await mic($('errRy')))return;drumInit();resetChroma();RY.phase='play';RY.t0=0;RY.nextClick=0;RY.lat=0;startLoop(ryTick,0);
+};$('ryAgain').onclick=()=>startRhythm();
 $('ryFaster').onclick=()=>{RY.bpm=Math.min(200,RY.bpm+5);store.set('ry',{p:RY.p,bpm:RY.bpm,bars:RY.bars});startRhythm();};
 async function startRhythm(pi){
   if(pi!=null)RY.p=pi;go('ry');rhStop();
@@ -2449,7 +2490,7 @@ async function startRhythm(pi){
   $('rySetup').style.display='none';$('ryRun').style.display='';$('ryRes').style.display='none';
   ryGrid(-1);
   if(!await mic($('errRy')))return;drumInit();resetChroma();
-  RY.lat=cfg.lat==null?0.08:cfg.lat;RY.phase='lat';RY.latT0=0;RY.latD=[];RY.t0=0;
+  RY.lat=cfg.lat==null?0.08:cfg.lat;RY.phase=cfg.latManual?'play':'lat';if(cfg.latManual){RY.t0=A.ctx.currentTime+0.4;RY.nextClick=RY.t0;}RY.calib=false;RY.latT0=0;RY.latD=[];RY.t0=0;
   startLoop(ryTick,0);
 }
 function ryGrid(curSlot){
@@ -2470,10 +2511,20 @@ function ryOnset(){
   const cur=E(N);let mn=1e9;for(let k=1;k<=12;k++){const e=E(N-k*hop);if(e<mn)mn=e;}
   return 10*Math.log10(cur)>A.noise+12&&10*Math.log10(cur/mn)>3;
 }
+function ryLane(tt){
+  const out=(A.ctx&&(A.ctx.outputLatency||0))||0,td=tt-out,span=3,pre=0.5,X=t=>((t-td+pre)/span*100);
+  let h=`<div style="position:absolute;left:${pre/span*100}%;top:0;bottom:0;width:4px;margin-left:-2px;background:var(--acc)"></div>`;
+  const b0=Math.floor((td-pre)/RY.beat),b1=Math.ceil((td-pre+span)/RY.beat);
+  for(let b=b0;b<=b1;b++){const x=X(b*RY.beat);if(x<-5||x>105)continue;h+=`<div style="position:absolute;left:${x}%;top:0;bottom:0;width:1px;background:#4a505d"></div><span style="position:absolute;left:${x}%;bottom:2px;font-size:10px;color:#6c7383;margin-left:3px">${((b%4)+4)%4+1}</span>`;}
+  for(const e of RY.exp){const x=X(e.t);if(x<-8||x>108)continue;const col=e.hit===true?'var(--ok)':e.hit===false?'var(--ko)':'var(--txt)';
+    h+=`<span style="position:absolute;left:${x}%;top:22px;transform:translateX(-50%);font-size:40px;font-weight:900;color:${col}">${ryArrow(e.c)}</span>`;}
+  $('ryLane').innerHTML=h;
+}
 function ryTick(ts){
   if(RY.stop) return;
   const db=levelDb();meter($('ryMeter'),db);
   if(calStep()){$('ryStatus').textContent='🤫 Ne joue pas… je mesure le bruit';$('ryStatus').style.color='var(--blue)';return;}
+  if(RY.phase==='play'&&!RY.t0){RY.t0=A.ctx.currentTime+0.4;RY.nextClick=RY.t0;}
   const now=A.ctx.currentTime,ci=4*RY.beat;
   // 📏 mesure du délai : l'app joue 4 « tac » et regarde quand le micro les entend (haut-parleur + micro)
   if(RY.phase==='lat'){
@@ -2487,21 +2538,34 @@ function ryTick(ts){
     return;}
   while(RY.nextClick<now+0.15&&RY.nextClick<RY.t0+ci+RY.total-0.01){const k=Math.round((RY.nextClick-RY.t0)/RY.beat);metroSound(RY.nextClick,k>=4&&(k-4)%4===0?2:1);RY.nextClick+=RY.beat;}
   const t=now-RY.t0;diag('dRy',db,gate(db),null,'');
-  if(t<ci){$('ryCountIn').style.display='block';$('ryCountIn').textContent=Math.max(1,4-Math.floor(Math.max(0,t)/RY.beat));$('ryStatus').textContent='';return;}
+  if(t<ci){$('ryCountIn').style.display='block';$('ryCountIn').textContent=Math.max(1,4-Math.floor(Math.max(0,t)/RY.beat));$('ryStatus').textContent='';ryLane(t-ci);return;}
   $('ryCountIn').style.display='none';
   const tt=t-ci;
   if(tt>RY.total+0.25){ryFinish();return;}
   const tol=Math.min(0.11,RY.slot*0.45);
   // détection du coup de gratte (instant précis)
+  if(RY.calib){if(gate(db)&&ryOnset()&&now-RY.lastOn>0.25){RY.lastOn=now;const k=Math.round(tt/RY.beat);const d=tt-k*RY.beat;if(k>=0&&k<8&&Math.abs(d)<0.35){RY.cal.push(d);const e=RY.exp[k];if(e){e.hit=true;}}}
+    $('ryStatus').textContent='🎯 Gratte pile sur chaque « tac » ('+RY.cal.length+'/8)';$('ryStatus').style.color='var(--blue)';ryLane(tt);if(tt>RY.total+0.4)ryCalEnd();return;}
   if(gate(db)&&ryOnset()&&now-RY.lastOn>Math.min(0.15,RY.slot*0.6)){RY.lastOn=now;const ot=tt-RY.lat;
     let best=null;for(const e of RY.exp){if(e.hit===true)continue;const d=ot-e.t;if(Math.abs(d)<=tol&&(!best||Math.abs(d)<Math.abs(best.d)))best={e,d};}
     if(best){best.e.hit=true;best.e.d=best.d;$('ryStatus').textContent=Math.abs(best.d)<0.035?'✓ pile':best.d<0?'✓ un poil en avance':'✓ un poil en retard';$('ryStatus').style.color='var(--ok)';}
     else if(ot>-0.05){RY.extra++;$('ryStatus').textContent='✗ coup en trop';$('ryStatus').style.color='var(--ko)';}}
   for(const e of RY.exp) if(e.hit==null&&tt>e.t+tol) e.hit=false;
+  ryLane(tt);
   const slotNow=Math.floor(tt/RY.slot);if(slotNow!==RY.cur){RY.cur=slotNow;ryGrid(slotNow);}
   $('ryProg').textContent='Mesure '+Math.min(RY.bars,Math.floor(tt/(4*RY.beat))+1)+' / '+RY.bars;$('ryBeat').textContent=RY.bpm+' BPM';
 }
+function ryCalEnd(){
+  RY.stop=true;stopLoops();const D=RY.cal.slice().sort((a,b)=>a-b);
+  if(D.length>=5){const m=D[Math.floor(D.length/2)];cfg.lat=Math.round(m*1000)/1000;cfg.latManual=1;saveCfg();
+    $('ryResTxt').innerHTML='✓ Calibré ! Décalage de ton iPhone : <b>'+Math.round(m*1000)+' ms</b>. La rythmique en tient compte maintenant.';}
+  else $('ryResTxt').innerHTML='Je n\'ai entendu que '+D.length+' coups sur 8. Réessaie en grattant franchement, pile sur les « tac ».';
+  $('ryRes').style.display='';$('ryOk').textContent=D.length;$('ryKo').textContent=8-D.length;$('ryFaster').style.display='none';
+  $('ryAgain').onclick=()=>{$('ryAgain').onclick=()=>startRhythm();renderRy();};$('ryAgain').textContent='Retour';
+}
 function ryFinish(){
+  if(RY.calib){ryCalEnd();return;}
+  $('ryAgain').textContent='Rejouer';$('ryAgain').onclick=()=>startRhythm();
   RY.stop=true;stopLoops();
   const ok=RY.exp.filter(e=>e.hit===true),n=RY.exp.length,pc=Math.round(ok.length/n*100);
   const avg=ok.length?Math.round(ok.reduce((a,e)=>a+e.d,0)/ok.length*1000):0;
@@ -2609,6 +2673,57 @@ $('teNext').onclick=()=>{TE.pos++;if(TE.pos>=TE.cols.length)TE.cols.push({});TE.
 $('teIns').onclick=()=>{TE.cols.splice(TE.pos,0,{});teSave();renderTabEdit();};
 $('teDelCol').onclick=()=>{if(TE.cols.length>1){TE.cols.splice(TE.pos,1);TE.pos=Math.min(TE.pos,TE.cols.length-1);}else TE.cols=[{}];teSave();renderTabEdit();};
 $('tePlay').onclick=()=>{teSave();openTab(TE.i);};
+
+/* ====================== TROUVE MON ACCORD (manche tactile) ====================== */
+const FI={f:null,base:0};
+function nameChord(mids){
+  const pcs=[...new Set(mids.map(m=>((m%12)+12)%12))];if(!pcs.length) return [];
+  const bass=((Math.min(...mids)%12)+12)%12;const out=[];
+  for(const r of pcs){const iv=new Set(pcs.map(p=>(p-r+12)%12));
+    for(const q of QORDER){const S=new Set(Q[q].iv.map(x=>x%12));
+      const exact=iv.size===S.size&&[...iv].every(x=>S.has(x));
+      const no5=!exact&&q!=='5'&&S.has(7)&&!iv.has(7)&&iv.size===S.size-1&&[...iv].every(x=>S.has(x))&&S.size>=4;
+      if(exact||no5) out.push({r,q,no5,score:(exact?0:3)+(r===bass?0:1.5)+QORDER.indexOf(q)*0.05});}}
+  out.sort((a,b)=>a.score-b.score);
+  return out.map(o=>({r:o.r,q:o.q,name:PC_EN[o.r]+QSHOW[o.q]+(o.r!==bass?'/'+PC_EN[bass]:''),fr:PC_FR[o.r]+' '+Q[o.q].fr+(o.r!==bass?' avec '+PC_FR[bass]+' à la basse':'')+(o.no5?' (sans la quinte)':'')}));
+}
+function fiMids(){return FI.f.map((x,i)=>x<0?null:I().open[i]+x).filter(x=>x!=null);}
+function renderFinder(){
+  const n=I().open.length;if(!FI.f||FI.f.length!==n)FI.f=new Array(n).fill(-1);
+  segInit('fiRange',FI.base,v=>{FI.base=+v;renderFinder();});
+  const fmin=FI.base,fmax=FI.base+12;
+  const dots=[];FI.f.forEach((x,s)=>{if(x>=0&&(x===0||x>=fmin&&x<=fmax))dots.push({s,f:x===0&&fmin>0?fmin:x,st:'cur',label:nName(I().open[s]+x)});});
+  $('fiFb').innerHTML=fretboard({fmin,fmax,dots});
+  $('fiStr').innerHTML=FI.f.map((x,s)=>`<span class="chip" style="min-width:44px;${x<0?'opacity:.45':''}">${I().strNames[s]} ${x<0?'✕':x}</span>`).reverse().join('');
+  const svg=$('fiFb').querySelector('svg');
+  svg.onclick=e=>{const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,x=(e.clientX-r.left)*vb.width/r.width,y=(e.clientY-r.top)*vb.height/r.height;
+    const W=358,L=34,Rm=8,top=14,sh=n===6?26:32,cols=fmax-fmin+1,cw=(W-L-Rm)/cols;
+    let xx=cfg.lefty?W-Rm-(x-L):x;let col=Math.floor((xx-L)/cw);if(xx<L)col=-1;
+    const s=Math.round((n-1)-(y-top)/sh);if(s<0||s>=n)return;
+    let f=fmin+col;if(col<0||(fmin===0&&col===0))f=0;if(f<0)f=0;
+    FI.f[s]=FI.f[s]===f?-1:f;renderFinder();
+    const m=I().open[s]+f;if(FI.f[s]>=0)playNotes([m]);};
+  const mids=fiMids(),res=nameChord(mids);
+  $('fiNotes').innerHTML=[...new Set(mids.map(m=>m%12))].map(p=>`<span class="note ok">${PC_FR[p]}</span>`).join('');
+  if(!mids.length){$('fiName').textContent='–';$('fiFr').textContent='Touche des cases sur le manche';$('fiAlt').textContent='';}
+  else if(mids.length===1){$('fiName').textContent=nName(mids[0]);$('fiFr').textContent='une seule note';$('fiAlt').textContent='';}
+  else if(res.length){$('fiName').textContent=res[0].name;$('fiFr').textContent=res[0].fr;$('fiAlt').textContent=res.length>1?'Peut aussi s\'appeler : '+[...new Set(res.slice(1,4).map(x=>x.name))].join(', '):'';}
+  else{const pcs=[...new Set(mids.map(m=>m%12))];
+    if(pcs.length===2){const iv=(pcs[1]-pcs[0]+12)%12,I2=IVS.find(x=>x[0]===iv)||IVS.find(x=>x[0]===12-iv);$('fiName').textContent=PC_EN[pcs[0]]+' + '+PC_EN[pcs[1]];$('fiFr').textContent='2 notes : '+(I2?I2[1]:'intervalle');}
+    else{$('fiName').textContent='?';$('fiFr').textContent='Pas un accord « classique » — mais si ça sonne bien, garde-le !';}
+    $('fiAlt').textContent='';}
+  $('fiSave').style.display=res.length&&mids.length>=2?'':'none';
+}
+$('fiPlay').onclick=()=>{const m=fiMids();if(m.length)playNotes(m,0.045);};
+$('fiClear').onclick=()=>{FI.f=FI.f.map(()=>-1);$('fiSaved').textContent='';renderFinder();};
+$('fiSave').onclick=()=>{
+  const mids=fiMids(),res=nameChord(mids);if(!res.length)return;const x=res[0];
+  const key='U'+FI.f.join('.');const C=store.get('cust_'+cfg.inst,{});
+  C[key]={n:x.name,r:x.r,q:x.q,f:FI.f.slice(),fr:x.fr};store.set('cust_'+cfg.inst,C);
+  const L=myList();if(!L.includes(key)){L.push(key);store.set('my_'+cfg.inst,L);}
+  for(const k in CHCACHE)delete CHCACHE[k];
+  $('fiSaved').textContent='✓ « '+x.name+' » ajouté à ⭐ Ma liste (entraînement, chrono, morceaux…)';
+};
 
 /* ===================== DÉMARRAGE ===================== */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&A.ctx&&A.ctx.state!=='running')A.ctx.resume();});
