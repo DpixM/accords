@@ -122,7 +122,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.2</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.3</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -131,7 +131,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 
 <!-- HUB -->
 <section class="screen" id="s-hub">
-  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.2</span><button class="pill" id="switchInst">Changer</button></header>
+  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.3</span><button class="pill" id="switchInst">Changer</button></header>
   <button class="tile" data-go="session" style="background:linear-gradient(135deg,#3a2a0c,#1e2129);border:1px solid #5a4214"><span class="ic">📅</span><div><b>Séance du jour</b><span id="hubStreak">10–15 min, je te guide étape par étape</span></div></button>
   <details class="grp" data-g="play" open><summary>🎸 Jouer</summary>
     <button class="tile" data-go="practiceSetup"><span class="ic">🎯</span><div><b>Accords – entraînement</b><span>Tu joues, ça passe au suivant quand c'est bon</span></div></button>
@@ -429,7 +429,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
   <div id="omRun" style="display:none">
     <div class="card" id="omCard">
       <div class="count" id="omTime" style="font-size:64px">60</div>
-      <div style="text-align:center;border-radius:14px;padding:6px" id="omBox"><div class="hint" style="margin:0">Joue maintenant</div><div class="chordName" id="omNow">C</div><div class="diag" id="omDNow"></div></div>
+      <div style="text-align:center;border-radius:14px;padding:6px" id="omBox"><div class="hint" style="margin:0">Joue maintenant</div><div class="chordName" id="omNow">C</div><div class="chordFr" id="omNowFr"></div><div class="diag" id="omDNow"></div></div>
       <div class="next">Ensuite : <b id="omNext">G</b> <span id="omNextMini" style="display:inline-block;vertical-align:middle;width:70px"></span></div>
       <div class="score" style="margin-top:6px"><div class="g"><b id="omCount">0</b>changements</div></div>
       <div class="status" id="omStatus"></div>
@@ -592,6 +592,12 @@ details.grp:not([open])>summary::after{content:' ▸';}
     <div class="chips" id="pChips"></div>
   </div>
   <div class="card">
+    <p class="lbl">🧠 Apprendre les noms par cœur</p>
+    <p class="hint" style="margin-top:0">Nom affiché</p><div class="seg" id="pNameMode"><button data-v="0">C + Do majeur</button><button data-v="1">C</button><button data-v="2">Do majeur</button></div>
+    <p class="hint">Schéma</p><div class="seg" id="pDiagMode"><button data-v="0">Montré</button><button data-v="1">Caché (bouton 💡)</button><button data-v="2">Caché 8 s</button></div>
+    <p class="hint" style="margin-bottom:0">Schéma caché = tu dois savoir où mettre les doigts. Si tu regardes l'aide, l'accord compte comme « à revoir » dans ta révision.<br>Mémo : <b>C</b>=Do · <b>D</b>=Ré · <b>E</b>=Mi · <b>F</b>=Fa · <b>G</b>=Sol · <b>A</b>=La · <b>B</b>=Si · <b>m</b>=mineur</p>
+  </div>
+  <div class="card">
     <p class="lbl">Ordre</p>
     <div class="seg" id="pOrder"><button data-v="0" class="on">Dans l'ordre</button><button data-v="1">Au hasard</button></div>
   </div>
@@ -606,6 +612,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
     <div class="chordName" id="pName">Em</div>
     <div class="chordFr" id="pFr">Mi mineur</div>
     <div class="diag" id="pDiag"></div>
+    <div style="text-align:center"><button class="pill" id="pHelp" style="display:none;margin:6px 0">💡 Aide : voir le schéma</button></div>
     <div class="notes" id="pNotes"></div>
     <div class="status" id="pStatus">J'écoute…</div>
     <div class="meter"><i id="pMeter"></i><b></b></div><div class="diagline" id="dP"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
@@ -684,7 +691,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 </div>
 <script>
 'use strict';
-const VERSION='v5.2';
+const VERSION='v5.3';
 document.addEventListener('DOMContentLoaded',()=>{});
 
 /* ===================== DONNÉES ===================== */
@@ -966,14 +973,21 @@ function pluckBuf(midi){
   const c=A.ctx,sr=c.sampleRate,f=440*Math.pow(2,(midi-69)/12),N=Math.max(2,Math.round(sr/f)),len=Math.round(sr*1.4);
   const buf=c.createBuffer(1,len,sr),d=buf.getChannelData(0),ring=new Float32Array(N);
   for(let i=0;i<N;i++) ring[i]=Math.random()*2-1;
+  for(let k=0;k<2;k++){let prev=ring[N-1];for(let i=0;i<N;i++){const v=ring[i];ring[i]=0.5*(v+prev);prev=v;}} // attaque moins « grinçante »
   let p=0,mx=0;for(let i=0;i<len;i++){const a=ring[p],b=ring[(p+1)%N];d[i]=a;ring[p]=0.997*0.5*(a+b);p=(p+1)%N;if(Math.abs(a)>mx)mx=Math.abs(a);}
   for(let i=0;i<len;i++){const env=i<len*0.75?1:1-(i-len*0.75)/(len*0.25);d[i]=d[i]/mx*env;} // fin en douceur
   return PB[midi]=buf;
 }
+/* bus séparé pour les notes jouées par l'app : doux (filtre + petit limiteur), sans le gros gain du métronome → plus de saturation */
+let noteBus=null;
+function getNoteBus(){drumInit();const c=A.ctx;if(!noteBus){const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3500;lp.Q.value=0.4;
+  const comp=c.createDynamicsCompressor();comp.threshold.value=-8;comp.knee.value=12;comp.ratio.value=3;comp.attack.value=0.004;comp.release.value=0.25;
+  const g=c.createGain();g.gain.value=0.9;lp.connect(comp);comp.connect(g);g.connect(c.destination);noteBus=lp;}return noteBus;}
+function noteGain(n){return 0.55/Math.sqrt(Math.max(1,n));}
 function playNotes(mids,gap){
   drumInit();const c=A.ctx;if(c.state!=='running')c.resume();
-  const t=c.currentTime+0.03;
-  mids.forEach((m,i)=>{const src=c.createBufferSource();src.buffer=pluckBuf(m);const g=c.createGain();g.gain.value=0.8;src.connect(g).connect(master);src.start(t+i*(gap||0));});
+  const t=c.currentTime+0.03,bus=getNoteBus(),gv=noteGain(gap>0.3?1:mids.length);
+  mids.forEach((m,i)=>{const src=c.createBufferSource();src.buffer=pluckBuf(m);const g=c.createGain();g.gain.value=gv;src.connect(g).connect(bus);src.start(t+i*(gap||0));});
   A.muteUntil=Math.max(A.muteUntil||0,t+(mids.length-1)*(gap||0)+1.5);NS.hist=[];
 }
 
@@ -1259,6 +1273,7 @@ function renderPracticeSetup(){
     store.set('off_'+cfg.inst,o);b.classList.toggle('on');
   });
   segInit('pOrder',cfg.order,v=>{cfg.order=+v;saveCfg();});
+  segInit('pNameMode',cfg.nameMode||0,v=>{cfg.nameMode=+v;saveCfg();});segInit('pDiagMode',cfg.diagMode||0,v=>{cfg.diagMode=+v;saveCfg();});
 }
 function pickNext(list,prev){
   if(list.length===1) return list[0];
@@ -1300,10 +1315,21 @@ $('pBack').onclick=()=>go(P&&P.rev?'revision':'practiceSetup');
 $('pSkip').onclick=()=>{if(!P)return;addStat(P.cur.key,false);P.seq.push(P.cur);P.hits.push(false);nextPractice();};
 function showPractice(){
   P.shownAt=performance.now();
-  const c=P.cur;$('pName').textContent=c.n;$('pFr').textContent=c.fr;$('pDiag').innerHTML=diagram(c);
-  $('pNotes').innerHTML=notesHtml(c);$('pStatus').textContent='J\'écoute… gratte l\'accord';$('pStatus').style.color='';
+  const c=P.cur;chordLabel(c,'pName','pFr');P.helped=false;
+  const hide=(cfg.diagMode||0)>0;$('pDiag').innerHTML=hide?'<div style="height:120px;display:flex;align-items:center;justify-content:center;font-size:54px;opacity:.35">🙈</div>':diagram(c);
+  $('pHelp').style.display=hide?'':'none';clearTimeout(P.helpT);
+  if(cfg.diagMode===2) P.helpT=setTimeout(()=>{if(P&&P.cur===c)showHelp(false);},8000);
+  $('pNotes').innerHTML=hide?'':notesHtml(c);$('pStatus').textContent='J\'écoute… gratte l\'accord';$('pStatus').style.color='';
   $('pCount').textContent=P.rev?Math.min(P.seq.length+1,P.revN)+' / '+P.revN:P.done+' ✓';
 }
+function chordLabel(c,idN,idF){
+  const m=cfg.nameMode||0,N=$(idN),F=$(idF);
+  if(m===2){N.textContent=c.fr.split(' · ')[0];N.style.fontSize=c.fr.length>11?'36px':'48px';F.textContent='';}
+  else{N.textContent=c.n;N.style.fontSize='';F.textContent=m===1?'':c.fr;F.style.fontSize=m===0?'21px':'';F.style.color=m===0?'var(--txt)':'';}
+}
+function showHelp(byUser){if(!P||!P.cur)return;P.helped=true;$('pDiag').innerHTML=diagram(P.cur);$('pNotes').innerHTML=notesHtml(P.cur);$('pHelp').style.display='none';
+  if(cfg.nameMode)$('pFr').textContent=cfg.nameMode===1?P.cur.fr:P.cur.n;}
+$('pHelp').onclick=()=>showHelp(true);
 function nextPractice(){
   if(P.rev){if(P.seq.length>=P.revN){stopLoops();showResults(P.seq,P.hits,startRevPractice);return;}P.cur=weightedPick(P.list,P.cur);}
   else if(cfg.order){P.cur=pickNext(P.list,P.cur);} else {P.idx=(P.idx+1)%P.list.length;P.cur=P.list[P.idx];}
@@ -1315,17 +1341,18 @@ function practiceTick(ts){
   if(calStep()){$('pStatus').textContent='🤫 Ne joue pas… je mesure le bruit de la pièce';$('pStatus').style.color='var(--blue)';return;}
   const on=gate(db),hit=strumCheck(db,ts);
   const ch=chroma();diag('dP',db,on&&hit,ch);
-  if(!on||!hit){P.hold=0;P.acc=0;$('pStatus').textContent='J\'écoute… gratte l\'accord';$('pStatus').style.color='';$('pNotes').innerHTML=notesHtml(P.cur);return;}
+  if(!on||!hit){P.hold=0;P.acc=0;$('pStatus').textContent='J\'écoute… gratte l\'accord';$('pStatus').style.color='';if(!((cfg.diagMode||0)>0&&!P.helped))$('pNotes').innerHTML=notesHtml(P.cur);return;}
   const res=judge(ch,P.cur);
-  $('pNotes').innerHTML=notesHtml(P.cur,ch,res);strColors('pDiag',res);
+  if(!((cfg.diagMode||0)>0&&!P.helped))$('pNotes').innerHTML=notesHtml(P.cur,ch,res);strColors('pDiag',res);
   const dt=P.lastTs?Math.min(120,ts-P.lastTs):50;P.lastTs=ts;
   P.acc=Math.max(0,(P.acc||0)+(res.ok?dt:-dt*0.5));
   if(res.ok||P.acc>0){
     if(!P.hold)P.hold=ts;
     $('pStatus').textContent='Oui… tiens-le !';$('pStatus').style.color='var(--ok)';
     if(P.acc>SEV[cfg.sev].hold){P.acc=0;
-      P.done++;addStat(P.cur.key,true,performance.now()-P.shownAt);P.seq.push(P.cur);P.hits.push(true);ding();
-      $('pStatus').textContent='✓ Bravo !';$('pCount').textContent=P.done+' ✓';
+      P.done++;addStat(P.cur.key,!P.helped,performance.now()-P.shownAt);P.seq.push(P.cur);P.hits.push(!P.helped);ding();
+      if((cfg.diagMode||0)>0&&!P.helped){$('pDiag').innerHTML=diagram(P.cur);}
+      $('pStatus').textContent=P.helped?'✓ Bravo (avec l\'aide)':'✓ Bravo !';$('pCount').textContent=P.done+' ✓';
       const card=$('pCard');card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
       P.lock=ts+900;
     }
@@ -1380,9 +1407,9 @@ async function startChrono(rev,song){
   startLoop(chronoTick);
 }
 function showChronoChord(i){
-  const c=chrono.seq[i];$('cName').textContent=c.n;$('cFr').textContent=c.fr;$('cDiag').innerHTML=diagram(c,true);
-  $('cNotes').innerHTML=notesHtml(c);
-  $('cNext').textContent=chrono.seq[i+1]?chrono.seq[i+1].n:'fin';
+  const c=chrono.seq[i];chordLabel(c,'cName','cFr');const hide=(cfg.diagMode||0)>0&&!chrono.listen;$('cDiag').innerHTML=hide?'<div style="height:90px;display:flex;align-items:center;justify-content:center;font-size:44px;opacity:.35">🙈</div>':diagram(c,true);
+  $('cNotes').innerHTML=hide?'':notesHtml(c);
+  $('cNext').textContent=chrono.seq[i+1]?((cfg.nameMode===2)?chrono.seq[i+1].fr.split(' · ')[0]:chrono.seq[i+1].n):'fin';
   $('cProg').textContent=(c.sec?'▸ '+c.sec+' · ':'')+(i+1)+' / '+chrono.seq.length;
   $('cCard').style.background='';
 }
@@ -2279,7 +2306,8 @@ $('diAdd').onclick=()=>{const k=PC_EN[DI.r]+DI.q;let L=myList();L=L.includes(k)?
 
 /* ====================== MES MORCEAUX (suites d'accords) ====================== */
 function strumAt(c,t,vol){drumInit();const mids=c.f.map((f,i)=>f<0?null:I().open[i]+f).filter(x=>x!=null);
-  mids.forEach((m,i)=>{const src=A.ctx.createBufferSource();src.buffer=pluckBuf(m);const g=A.ctx.createGain();g.gain.value=vol*0.7;src.connect(g).connect(master);src.start(t+i*0.018);});}
+  const bus=getNoteBus(),gv=noteGain(mids.length)*vol*1.1;
+  mids.forEach((m,i)=>{const src=A.ctx.createBufferSource();src.buffer=pluckBuf(m);const g=A.ctx.createGain();g.gain.value=gv;src.connect(g).connect(bus);src.start(t+i*0.018);});}
 function songsGet(){return store.get('songs_'+cfg.inst,[]);}
 function songsSet(L){store.set('songs_'+cfg.inst,L);}
 function songChord(it){if(!it||it.mark)return null;return chordDict(cfg.inst)[PC_EN[((it.r%12)+12)%12]+it.q];}
@@ -2427,7 +2455,7 @@ async function startOmRun(){
   if(!await mic($('errOm')))return;resetChroma();startLoop(omTick);
 }
 function omHl(){const now=OM.cur===0?OM.ca:OM.cb,nx=OM.cur===0?OM.cb:OM.ca;
-  $('omNow').textContent=now.n;$('omDNow').innerHTML=diagram(now,true);$('omNext').textContent=nx.n;$('omNextMini').innerHTML=diagram(nx,true);
+  chordLabel(now,'omNow','omNowFr');$('omDNow').innerHTML=(cfg.diagMode||0)>0?'':diagram(now,true);$('omNext').textContent=nx.n;$('omNextMini').innerHTML=diagram(nx,true);
   const b=$('omBox');b.classList.remove('flash');void b.offsetWidth;if(OM.count)b.classList.add('flash');}
 function omTick(ts){
   const db=levelDb();meter($('omMeter'),db);
