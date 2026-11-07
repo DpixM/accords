@@ -123,7 +123,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.6</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.7</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -132,7 +132,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 
 <!-- HUB -->
 <section class="screen" id="s-hub">
-  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.6</span><button class="pill" id="switchInst">Changer</button></header>
+  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.7</span><button class="pill" id="switchInst">Changer</button></header>
   <button class="tile" data-go="session" style="background:linear-gradient(135deg,#3a2a0c,#1e2129);border:1px solid #5a4214"><span class="ic">📅</span><div><b>Séance du jour</b><span id="hubStreak">10–15 min, je te guide étape par étape</span></div></button>
   <details class="grp" data-g="play" open><summary>🎸 Jouer</summary>
     <button class="tile" data-go="practiceSetup"><span class="ic">🎯</span><div><b>Accords – entraînement</b><span>Tu joues, ça passe au suivant quand c'est bon</span></div></button>
@@ -411,11 +411,14 @@ details.grp:not([open])>summary::after{content:' ▸';}
 <!-- SEANCE DU JOUR -->
 <section class="screen" id="s-session">
   <header><button class="back" data-go="hub">‹</button><h1>Séance du jour</h1><span class="pill" id="seStreak">🔥 0</span></header>
-  <div class="card"><p class="hint" style="margin:0">Fais les étapes dans l'ordre (ou dans le désordre !). Quand une étape est finie, un bandeau te ramène ici. <b>4 étapes sur 6 = journée validée 🔥</b></p></div>
   <div id="sessList"></div>
 </section>
+<section class="screen" id="s-ctrl">
+  <header><button class="back" data-go="session">‹</button><h1>Contrôle de la semaine</h1></header>
+  <div id="ctrlBody"></div>
+</section>
 <div id="sessBar" style="display:none;position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:48;background:var(--ok);color:#04210f;border-radius:14px;padding:12px 14px;font-weight:800;box-shadow:0 6px 20px rgba(0,0,0,.5);display:none;align-items:center;gap:10px">
-  <span style="flex:1">✓ Étape terminée !</span><button class="pill" id="sessBack" style="background:#04210f;color:#fff">Continuer la séance ›</button><button class="pill" id="sessHide" style="background:transparent">✕</button></div>
+  <span style="flex:1" id="sessBarTxt">✓ Étape terminée !</span><button class="pill" id="sessBack" style="background:#04210f;color:#fff">Continuer la séance ›</button><button class="pill" id="sessHide" style="background:transparent">✕</button></div>
 
 <!-- CHANGEMENTS EN 1 MINUTE -->
 <section class="screen" id="s-om">
@@ -709,7 +712,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 </div>
 <script>
 'use strict';
-const VERSION='v5.6';
+const VERSION='v5.7';
 document.addEventListener('DOMContentLoaded',()=>{});
 
 /* ===================== DONNÉES ===================== */
@@ -865,6 +868,8 @@ function go(name){
   if(name==='progress') renderProgress();
   if(name==='tabEdit') renderTabEdit();
   if(name==='finder') renderFinder();
+  if(name==='ctrl') renderCtrl();
+  if((name==='session'||name==='hub')&&SESS.saved){SESS.active=null;restoreCfg();}
   if(name==='tuner') startTuner();
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b) go(b.dataset.go);});
@@ -1362,7 +1367,7 @@ function showHelp(byUser){if(!P||!P.cur)return;P.helped=true;$('pDiag').innerHTM
   if(cfg.nameMode)$('pFr').textContent=cfg.nameMode===1?P.cur.fr:P.cur.n;}
 $('pHelp').onclick=()=>showHelp(true);
 function nextPractice(){
-  if(P.rev){if(P.seq.length>=P.revN){stopLoops();showResults(P.seq,P.hits,startRevPractice);return;}P.cur=weightedPick(P.list,P.cur);}
+  if(P.rev){if(P.seq.length>=P.revN){stopLoops();showResults(P.seq,P.hits,P.again||startRevPractice);return;}P.cur=P.rand?randPick(P.list,P.cur):weightedPick(P.list,P.cur);}
   else if(cfg.order){P.cur=pickNext(P.list,P.cur);} else {P.idx=(P.idx+1)%P.list.length;P.cur=P.list[P.idx];}
   P.hold=0;P.acc=0;resetChroma();showPractice();
 }
@@ -1507,7 +1512,7 @@ function finishChrono(){
   const rv=chronoRev,sg=C.song;showResults(C.seq,C.hit,()=>startChrono(rv,sg));
 }
 function showResults(seq,hit,again){
-  againFn=again;setTimeout(()=>sessDone('rev'),50);const C={seq,hit};
+  againFn=again;SESS.lastScore=Math.round(hit.filter(Boolean).length/seq.length*100);setTimeout(()=>sessDone('rev'),50);const C={seq,hit};
   const ok=C.hit.filter(Boolean).length;
   $('rOk').textContent=ok;$('rKo').textContent=C.seq.length-ok;
   $('rList').innerHTML=C.seq.map((c,i)=>`<span class="chip ${C.hit[i]?'g':'r'}">${c.n} ${C.hit[i]?'✓':'✗'}</span>`).join('');
@@ -1589,23 +1594,24 @@ function renderMaSetup(){
   segInit('maEarSeg',cfg.maEar==null?1:cfg.maEar,v=>{cfg.maEar=+v;saveCfg();});
 }
 function maNext(){
-  const off=store.get('maOff_'+cfg.inst,[]);const strs=I().open.map((o,i)=>i).filter(i=>!off.includes(i));
-  const pcs=cfg.maAll?[...Array(12).keys()]:NAT;
+  const off=MA.limit?[]:store.get('maOff_'+cfg.inst,[]);const strs=I().open.map((o,i)=>i).filter(i=>!off.includes(i));
+  const pcs=cfg.maAll&&!MA.limit?[...Array(12).keys()]:NAT;
   let s,pc;do{s=strs[Math.floor(Math.random()*strs.length)];pc=pcs[Math.floor(Math.random()*pcs.length)];}while(MA.cur&&MA.cur.s===s&&MA.cur.pc===pc&&(strs.length>1||pcs.length>1));
   const o=I().open[s];const frets=[];for(let f=0;f<=12;f++) if((o+f)%12===pc) frets.push(f);
   MA.cur={s,pc,frets,mids:frets.map(f=>o+f)};MA.lock=0;MA.shown=false;NS.hist=[];
   $('maNote').textContent=PC_FR[pc];$('maStrTxt').textContent='sur la corde de '+strFull(s);
   $('maFb').innerHTML=fretboard({fmin:0,fmax:12,hl:s});
-  $('maStatus').textContent='J\'écoute… joue la note';$('maStatus').style.color='';$('maCount').textContent=MA.done+' ✓';
+  $('maStatus').textContent='J\'écoute… joue la note';$('maStatus').style.color='';$('maCount').textContent=MA.limit?(MA.tries+1)+' / '+MA.limit:MA.done+' ✓';
   if((cfg.maEar==null?1:cfg.maEar)&&A.ctx) setTimeout(maAuto,250);
 }
 function maAuto(){if(current!=='ma')return;if(A.cal||!A.an){setTimeout(maAuto,300);return;}maEar();}
 function maEar(){if(MA.cur)playNotes([MA.cur.mids[0]]);}
 $('maEar').onclick=maEar;
-$('maStart').onclick=async()=>{go('ma');MA.done=0;MA.cur=null;maNext();if(!await mic($('errMa')))return;resetChroma();startLoop(maTick);};
+$('maStart').onclick=async()=>{go('ma');MA.limit=0;MA.tries=0;MA.done=0;MA.cur=null;maNext();if(!await mic($('errMa')))return;resetChroma();startLoop(maTick);};
 $('maShow').onclick=()=>{if(!MA.cur)return;MA.shown=true;maEar();$('maFb').innerHTML=fretboard({fmin:0,fmax:12,hl:MA.cur.s,dots:MA.cur.frets.map(f=>({s:MA.cur.s,f,st:'ans',label:PC_FR[MA.cur.pc]}))});
   $('maStatus').textContent='Là ! Joue-la maintenant';$('maStatus').style.color='var(--blue)';};
-$('maSkip').onclick=()=>{if(MA.cur) addNStat(MA.cur.s+'-'+MA.cur.pc,false);maNext();};
+$('maSkip').onclick=()=>{if(!MA.cur)return;addNStat(MA.cur.s+'-'+MA.cur.pc,false);if(MA.limit){MA.tries++;if(MA.tries>=MA.limit){maFinish();return;}}maNext();};
+function maFinish(){if(!MA.limit)return;stopLoops();const pc=Math.round(MA.good/MA.limit*100);$('maNote').textContent=MA.good+' / '+MA.limit;$('maStrTxt').textContent='notes trouvées sans aide';$('maStatus').textContent='Terminé ! '+pc+' %';$('maStatus').style.color='var(--ok)';MA.limit=0;MA.cur=null;SESS.lastScore=pc;sessDone('ma');}
 function maTick(ts){
   const db=levelDb();meter($('maMeter'),db);
   if(MA.lock){if(ts>MA.lock) maNext();return;}
@@ -1614,7 +1620,7 @@ function maTick(ts){
   const ch=chroma();const det=hearNote(db);diag('dMa',db,gate(db),null,det?' · j\'entends '+nName(det.midi):'');
   if(!det) return;
   if(MA.cur.mids.some(m=>noteOk(det,m))){
-    MA.done++;addNStat(MA.cur.s+'-'+MA.cur.pc,!MA.shown);ding();
+    MA.done++;addNStat(MA.cur.s+'-'+MA.cur.pc,!MA.shown);ding();if(MA.limit){MA.tries++;if(!MA.shown)MA.good++;if(MA.tries>=MA.limit){MA.lock=ts+1e9;setTimeout(maFinish,900);}}
     $('maFb').innerHTML=fretboard({fmin:0,fmax:12,hl:MA.cur.s,dots:MA.cur.frets.map(f=>({s:MA.cur.s,f,st:'done',label:PC_FR[MA.cur.pc]}))});
     $('maStatus').textContent='✓ Bravo ! (case '+MA.cur.frets.join(' ou ')+')';$('maStatus').style.color='var(--ok)';$('maCount').textContent=MA.done+' ✓';
     const card=$('maCard');card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
@@ -1855,7 +1861,7 @@ function seqFinish(ts){
   stopLoops();SQ.stop=true;
   const n=SQ.g.notes.length,ok=SQ.hits.filter(x=>x===true).length;
   logAdd('ok',ok);logAdd('ko',n-ok);if(SQ.mode)evPush('tempo',{k:'seq:'+SQ.title+':'+SQ.npb,l:SQ.title+(SQ.npb>1?' ('+SQ.npb+' notes/temps)':''),v:SQ.bpm,u:' BPM',pc:Math.round(ok/n*100)});if(SQ.mode&&ok/n>=0.9)setRec('seq:'+SQ.title+':'+SQ.npb,SQ.title+(SQ.npb>1?' ('+SQ.npb+' notes/temps)':''),SQ.bpm,' BPM');
-  setTimeout(()=>sessDone('warm'),50);
+  SESS.lastScore=Math.round(ok/n*100);setTimeout(()=>sessDone('warm'),50);
   SQ.idx=n;seqRender();
   $('qRes').style.display='';$('qOk').textContent=ok;$('qKo').textContent=n-ok;
   const pc=Math.round(ok/n*100);
@@ -2252,7 +2258,7 @@ function earTick(ts){
   else{$('eaFb').textContent='J\'entends '+nName(det.midi)+'… pas tout à fait';$('eaFb').style.color='var(--ko)';}
 }
 function earFinish(){
-  stopLoops();logAdd('ok',EAR.good);logAdd('ko',EAR.total-EAR.good);evPush('ear',{t:EAR.st.t,v:EAR.good});setRec('ear:'+EAR.st.t,'Oreille – '+['notes','accords','majeur/mineur','intervalles'][EAR.st.t]+' (sur 10)',EAR.good,'/10');setTimeout(()=>sessDone('ear'),50);$('eaCard').style.display='none';$('eaRes').style.display='';
+  stopLoops();logAdd('ok',EAR.good);logAdd('ko',EAR.total-EAR.good);evPush('ear',{t:EAR.st.t,v:EAR.good});setRec('ear:'+EAR.st.t,'Oreille – '+['notes','accords','majeur/mineur','intervalles'][EAR.st.t]+' (sur 10)',EAR.good,'/10');SESS.lastScore=EAR.good*10;setTimeout(()=>sessDone('ear'),50);$('eaCard').style.display='none';$('eaRes').style.display='';
   $('eaOk').textContent=EAR.good;$('eaKo').textContent=EAR.total-EAR.good;
   $('eaList').innerHTML=EAR.hist.map(([a,ok])=>`<span class="chip ${ok?'g':'r'}">${esc(a)} ${ok?'✓':'✗'}</span>`).join('');
 }
@@ -2441,7 +2447,7 @@ const _addStat=addStat;addStat=function(k,ok,ms){_addStat(k,ok,ms);logAdd(ok?'ok
 /* ---------- menu : rubriques repliables ---------- */
 document.querySelectorAll('details.grp').forEach(d=>{const st=store.get('grp',{});if(st[d.dataset.g]===false)d.open=false;
   d.addEventListener('toggle',()=>{const s2=store.get('grp',{});s2[d.dataset.g]=d.open;store.set('grp',s2);});});
-function hubExtra(){const n=streak();$('hubStreak').textContent=(n?'🔥 '+n+' jour'+(n>1?'s':'')+' d\'affilée · ':'')+'10–15 min, je te guide étape par étape';
+function hubExtra(){const n=streak(),T=THEMES[new Date().getDay()];$('hubStreak').textContent=(n?'🔥 '+n+' j · ':'')+'Aujourd\'hui : '+T[0]+' '+T[1]+(ctrlDue()?' · 📝 contrôle dispo !':'');
   const t=I().tuning;$('hubTun').textContent=t&&t.id!=='std'?'Accordage : '+t.fr:'À faire en premier, sinon rien n\'est reconnu';}
 
 /* ---------- sauvegarde ---------- */
@@ -2515,7 +2521,7 @@ function omFinish(){
   evPush('om',{k:omKey(),l:OM.ca.n+' ↔ '+OM.cb.n,v:OM.count});
   const rec=setRec(omKey(),'Changements '+OM.ca.n+' ↔ '+OM.cb.n,OM.count,' en 1 min');
   $('omRes').style.display='';$('omResTxt').innerHTML=(rec&&OM.count?'🏆 Nouveau record ! ':'')+'<b>'+OM.count+'</b> changements propres en 1 minute';
-  ding();sessDone('om');
+  ding();SESS.lastScore=OM.count;sessDone('om');
 }
 
 /* ====================== RYTHMIQUE ====================== */
@@ -2643,44 +2649,13 @@ function ryFinish(){
   $('ryFaster').style.display=pc>=90&&RY.extra<=2?'':'none';$('ryFaster').textContent='Rejouer à '+Math.min(200,RY.bpm+5)+' BPM';
   evPush('tempo',{k:'ry:'+RY.p,l:'Rythmique « '+RYP[RY.p].fr+' »',v:RY.bpm,u:' BPM',pc});
   if(pc>=90) setRec('ry:'+RY.p,'Rythmique « '+RYP[RY.p].fr+' » réussie à',RY.bpm,' BPM');
-  logAdd('ok',ok.length);logAdd('ko',n-ok.length);ding();sessDone('ry');
+  logAdd('ok',ok.length);logAdd('ko',n-ok.length);ding();SESS.lastScore=pc;sessDone('ry');
 }
 
 /* ====================== MES PROGRÈS ====================== */
 
 /* ====================== SÉANCE DU JOUR ====================== */
-const SESS={active:null};
-function sessState(){const s=store.get('sess',{});return s.d===today()?s:{d:today(),done:[]};}
-function sessSteps(){
-  const st=stats();const ranked=Object.entries(st).filter(([k])=>chordDict(cfg.inst)[k]).map(([k,v])=>[k,v.ko/(v.ok+v.ko||1)]).sort((a,b)=>b[1]-a[1]);
-  const P=omPool();let a=ranked[0]?ranked[0][0]:P[0].key,b=ranked[1]?ranked[1][0]:(P[1]||P[0]).key;if(a===b)b=(P.find(c=>c.key!==a)||P[0]).key;
-  const D=chordDict(cfg.inst);const dayN=Math.floor(Date.now()/864e5);const rp=dayN%RYP.length===7?2:dayN%RYP.length;
-  const chrom=SCALES.findIndex(x=>x.fr==='Chromatique');
-  return [
-    {id:'tune',ic:'🎚️',fr:'Accorde ta guitare',sub:'Toutes les cordes au vert, puis « ✓ Fait »',run:()=>go('tuner'),manual:true},
-    {id:'warm',ic:'🔥',fr:'Échauffement : gamme chromatique',sub:'Doucement, toutes les cases, mode libre',run:()=>{cfg.sc=Object.assign({},cfg.sc,{t:chrom,root:4,pos:0});cfg.sc_=Object.assign({},cfg.sc_,{mode:0});saveCfg();$('scStart').onclick();}},
-    {id:'rev',ic:'🧠',fr:revPool().length?'Révision : 10 accords':'Accords au chrono',sub:revPool().length?'Surtout ceux que tu rates':'10 accords au métronome',run:()=>revPool().length?startRevPractice():startChrono(false)},
-    {id:'om',ic:'🔁',fr:'Changements 1 min : '+(D[a]?D[a].n:a)+' ↔ '+(D[b]?D[b].n:b),sub:'Tes 2 accords les plus durs',run:()=>startOneMin(a,b)},
-    {id:'ry',ic:'✋',fr:'Rythmique : « '+RYP[rp].fr+' »',sub:'Le motif du jour',run:()=>startRhythm(rp)},
-    {id:'ear',ic:'👂',fr:'Oreille : 10 questions',sub:'Majeur ou mineur ? (ou ce que tu as choisi)',run:()=>startEar()},
-  ];
-}
-function renderSession(){
-  const s=sessState(),steps=sessSteps();$('seStreak').textContent='🔥 '+streak();
-  $('sessList').innerHTML=steps.map((x,i)=>{const d=s.done.includes(x.id);return `<div class="card" style="display:flex;align-items:center;gap:12px;${d?'opacity:.6':''}"><span style="font-size:28px">${d?'✅':x.ic}</span><div style="flex:1"><b>${i+1}. ${esc(x.fr)}</b><div class="hint" style="margin:2px 0 0">${esc(x.sub)}</div></div>
-    <div style="display:flex;flex-direction:column;gap:6px"><button class="pill" data-run="${x.id}" style="background:${d?'var(--card2)':'var(--acc)'};color:${d?'var(--txt)':'#1a1200'};font-weight:800">${d?'Refaire':'▶ Go'}</button>${x.manual&&!d?`<button class="pill" data-ok="${x.id}">✓ Fait</button>`:''}</div></div>`;}).join('')
-    +`<p class="hint" style="text-align:center">${s.done.length} / ${steps.length} étapes · ${s.done.length>=4?'journée validée 🔥':'encore '+(4-s.done.length)+' pour valider la journée'}</p>`;
-  $('sessList').querySelectorAll('[data-run]').forEach(b=>b.onclick=()=>{const x=steps.find(y=>y.id===b.dataset.run);SESS.active=x.id;hideSessBar();x.run();});
-  $('sessList').querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{SESS.active=b.dataset.ok;sessDone(b.dataset.ok,true);renderSession();});
-}
-function sessDone(id,silent){
-  if(SESS.active!==id) return;SESS.active=null;
-  const s=sessState();if(!s.done.includes(id))s.done.push(id);store.set('sess',s);
-  if(s.done.length>=4){const D=store.get('sessDays',[]);if(!D.includes(s.d)){D.push(s.d);store.set('sessDays',D.slice(-400));}}
-  if(!silent){$('sessBar').style.display='flex';}
-}
-function hideSessBar(){$('sessBar').style.display='none';}
-$('sessBack').onclick=()=>{hideSessBar();go('session');};$('sessHide').onclick=hideSessBar;
+/* (séance du jour : voir plus bas, V5.7) */
 
 /* ====================== ÉDITEUR DE TAB ====================== */
 const TE={i:-1,cols:[],pos:0,str:null,tech:''};
@@ -3009,6 +2984,157 @@ function stEar(){
   let h=card('👂 Mes scores d\'oreille (%)',series.length?lines(series,{ymin:0,ymax:100,unit:'%'}):empty('Fais des exercices d\'oreille pour voir ta progression.'),series.length?'Une couleur par exercice, de ton plus ancien essai (à gauche) au plus récent.':'');
   const R=store.get('rec',{});
   h+=card('🏆 Meilleurs scores',`<div style="display:flex;flex-wrap:wrap;gap:8px">${names.map((nm,t)=>tile(R['ear:'+t]?R['ear:'+t].v+'/10':'–',nm)).join('')}</div>`);
+  return h;
+}
+
+const SESS={active:null,kind:null,saved:null,lastScore:null,ctrl:false};
+function sessState(){const s=store.get('sess',{});return s.d===today()?Object.assign({scores:{}},s):{d:today(),done:[],scores:{}};}
+/* petit hasard « du jour » : le même toute la journée, différent chaque jour */
+function dayRand(salt){let h=0;const s=today()+':'+(salt||'');for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return ((h>>>0)%10000)/10000;}
+function pickDay(arr,salt){return arr[Math.floor(dayRand(salt)*arr.length)];}
+function lastTempo(k,def){const T=store.get('ev_tempo',[]).filter(e=>e.k===k&&e.pc>=90);return T.length?Math.max(...T.map(e=>e.v)):def;}
+function weekChords(){const H=store.get('hist_'+cfg.inst,{}),D=chordDict(cfg.inst),ks={};for(let o=0;o<7;o++){const d=H[today(o)]||{};for(const k in d)if(D[k])ks[k]=1;}const L=Object.keys(ks).map(k=>D[k]);return L.length>=3?L:levelChords();}
+function worstDuo(){const st=stats();const ranked=Object.entries(st).filter(([k])=>chordDict(cfg.inst)[k]).map(([k,v])=>[k,v.ko/(v.ok+v.ko||1)]).sort((a,b)=>b[1]-a[1]);
+  const P=omPool();let a=ranked[0]?ranked[0][0]:P[0].key,b=ranked[1]?ranked[1][0]:(P[1]||P[0]).key;if(a===b)b=(P.find(c=>c.key!==a)||P[0]).key;return [a,b];}
+function cn(k){const c=chordDict(cfg.inst)[k];return c?c.n:k;}
+function startMemory(pool,n){startRevPracticeWith(pool,n||10);}
+function randPick(pool,prev){const c=pool.length>1&&prev?pool.filter(x=>x.key!==prev.key):pool;return c[Math.floor(Math.random()*c.length)];}
+function startRevPracticeWith(pool,n){go('practice');P={list:pool,idx:0,cur:randPick(pool,null),hold:0,lock:0,done:0,tries:0,rev:true,rand:true,revN:n,seq:[],hits:[],again:()=>startRevPracticeWith(pool,n)};
+  showPractice();mic($('errPractice')).then(ok=>{if(ok){resetChroma();startLoop(practiceTick);}});}
+const THEMES={1:['🎯','Accords','On muscle tes accords : mémoire, changements, chrono'],2:['✋','Rythme','La main droite au programme'],3:['🗺️','Manche & gammes','Tu apprends où sont les notes'],
+  4:['👂','Oreille','On entraîne tes oreilles'],5:['🎵','Morceau','On joue de la musique, pour de vrai'],6:['🌊','Technique','Sweep, arpèges et vitesse'],0:['📝','Contrôle','Le jour du contrôle de la semaine (et une petite séance légère)']};
+function sessSteps(){
+  const dow=new Date().getDay(),D=chordDict(cfg.inst),[a,b]=worstDuo(),wk=weekChords(),chrom=SCALES.findIndex(x=>x.fr==='Chromatique'),guitar=cfg.inst==='guitar';
+  const rA=Math.floor(dayRand('ry')*7),rB=(rA+3)%7;const scT=pickDay([0,1,2,4,5,8],'sc'),scR=pickDay([9,4,7,2,0,5],'root'),scP=Math.floor(dayRand('pos')*5);
+  const steps=[{id:'tune',kind:'tune',ic:'🎚️',fr:'Accorde ton instrument',sub:'Toutes les cordes au vert (ça se valide tout seul)',run:()=>go('tuner')}];
+  const warm=pickDay([
+    {fr:'Échauffement : chromatique',sub:'Doucement, toutes les cases, mode libre',run:()=>{cfg.sc=Object.assign({},cfg.sc,{t:chrom,root:4,pos:0});cfg.sc_=Object.assign({},cfg.sc_,{mode:0});$('scStart').onclick();}},
+    {fr:'Échauffement : penta mineure de La (position '+(scP+1)+')',sub:'Mode libre, propre avant d\'être rapide',run:()=>{cfg.sc=Object.assign({},cfg.sc,{t:0,root:9,pos:scP});cfg.sc_=Object.assign({},cfg.sc_,{mode:0});$('scStart').onclick();}},
+    {fr:'Échauffement : majeure de Sol',sub:'Mode libre, une note après l\'autre',run:()=>{cfg.sc=Object.assign({},cfg.sc,{t:4,root:7,pos:0});cfg.sc_=Object.assign({},cfg.sc_,{mode:0});$('scStart').onclick();}}],'warm');
+  steps.push(Object.assign({id:'warm',kind:'warm',ic:'🔥'},warm));
+  const memo={id:'mem',kind:'rev',ic:'🙈',fr:'10 accords de mémoire',sub:'Schéma caché, juste le nom (Do, Sol, Ré…)',cfgO:{diagMode:1,nameMode:pickDay([0,2,1],'nm')},run:()=>startMemory(wk,10)};
+  const om={id:'om',kind:'om',ic:'🔁',fr:'Changements 1 min : '+cn(a)+' ↔ '+cn(b),sub:'Tes 2 accords les plus durs',run:()=>startOneMin(a,b)};
+  const cs=2+Math.floor(dayRand('cs')*3);
+  const ch={id:'chr',kind:'rev',ic:'⏱️',fr:'Chrono : 10 accords',sub:'Au métronome, rythme « '+STYLES[cs].fr+' »',cfgO:{cStyle:cs,num:10},run:()=>startChrono(false)};
+  const ry1={id:'ry1',kind:'ry',ic:'✋',fr:'Rythmique : « '+RYP[rA].fr+' »',sub:'À '+lastTempo('ry:'+rA,70)+' BPM (ton dernier tempo réussi)',run:()=>{RY.bpm=lastTempo('ry:'+rA,70);RY.bars=8;startRhythm(rA);}};
+  const ry2={id:'ry2',kind:'ry',ic:'✋',fr:'Rythmique : « '+RYP[rB].fr+' »',sub:'Un motif différent pour varier',run:()=>{RY.bpm=lastTempo('ry:'+rB,65);RY.bars=8;startRhythm(rB);}};
+  const ma={id:'ma',kind:'ma',ic:'🗺️',fr:'Le manche : 10 notes',sub:'Notes naturelles, toutes les cordes',run:()=>startManche(10)};
+  const sk='seq:'+SCALES[scT].fr+' de '+PC_FR[scR]+(scP?' · pos. '+(scP+1):'')+':2';
+  const sc={id:'sc',kind:'warm',ic:'🎼',fr:'Gamme du jour : '+SCALES[scT].fr+' de '+PC_FR[scR],sub:'Position '+(scP+1)+', au métronome à '+lastTempo(sk,60)+' BPM (2 notes / temps)',run:()=>{cfg.sc=Object.assign({},cfg.sc,{t:scT,root:scR,pos:scP});cfg.sc_={mode:1,bpm:lastTempo(sk,60),npb:2};$('scStart').onclick();}};
+  const ear=t=>({id:'ear'+t,kind:'ear',ic:'👂',fr:'Oreille : '+['quelle note ?','quel accord ?','majeur ou mineur ?','intervalles'][t],sub:t===0?'Réponds en la jouant à la guitare 🎸':'10 questions',run:()=>{cfg.ear=Object.assign({},cfg.ear,{t,ans:t===0?1:0,lv:0});startEar();}});
+  const exi=Math.floor(dayRand('ex')*EX.length);
+  const sw={id:'sw',kind:'warm',ic:'🌊',fr:'Sweep : '+EX[exi].fr,sub:'Au tempo conseillé ('+EX[exi].bpm+' BPM)',run:()=>{cfg.ar={t:2,ex:exi};cfg.ar_={mode:1,bpm:EX[exi].bpm,npb:EX[exi].npb};$('arStart').onclick();}};
+  const songs=songsGet();const song=songs.length?pickDay(songs,'song'):null;
+  const sg={id:'song',kind:'rev',ic:'🎵',fr:song?'Joue « '+song.name+' »':'Joue la suite « Pop » en Sol',sub:'Par-dessus la batterie, le micro vérifie',run:()=>{const s=song||{name:'Pop en Sol',bpm:80,style:2,passes:2,items:TEMPL[0].it.map(([d,q,bb])=>({r:(7+d)%12,q,b:bb}))};startChrono(false,s);}};
+  const plan={1:[memo,om,ch],2:[ry1,ry2,ch],3:[ma,sc,ear(0)],4:[ear(0),ear(3),ear(1)],5:[sg,ch,om],6:guitar?[sw,sc,ry1]:[sc,ry1,om],0:[ry1,ear(2)]}[dow];
+  plan.forEach((x,i)=>steps.push(Object.assign({},x,{id:x.id+'_'+i})));
+  // le point faible du dernier contrôle revient chaque jour
+  const H=store.get('ctrlH',[]),last=H[H.length-1];
+  if(last&&last.focus&&dow!==0){const f={acc:memo,om,ry:ry1,ma,ear:ear(2)}[last.focus];if(f)steps.push(Object.assign({},f,{id:'focus',fr:'🎯 Ton point faible : '+f.fr,sub:'Choisi par ton dernier contrôle'}));}
+  // défi du jour (bonus)
+  const rec=store.get('rec',{})[omKey2(a,b)];
+  const defi=pickDay([
+    {fr:'Défi : bats ton record en 1 min',sub:cn(a)+' ↔ '+cn(b)+(rec?' · record à battre : '+rec.v:''),kind:'om',run:()=>startOneMin(a,b)},
+    {fr:'Défi : rythmique à +5 BPM',sub:'« '+RYP[rA].fr+' » à '+(lastTempo('ry:'+rA,70)+5)+' BPM',kind:'ry',run:()=>{RY.bpm=lastTempo('ry:'+rA,70)+5;RY.bars=8;startRhythm(rA);}},
+    {fr:'Défi : 10 accords en mode Strict',sub:'Chaque corde doit sonner, sans aide',kind:'rev',cfgO:{sev:2,diagMode:1},run:()=>startMemory(wk,10)},
+    {fr:'Défi : 10/10 en majeur / mineur',sub:'Zéro faute !',kind:'ear',run:()=>{cfg.ear=Object.assign({},cfg.ear,{t:2,ans:0});startEar();}}],'defi');
+  steps.push(Object.assign({id:'defi',ic:'⭐',bonus:true},defi));
+  return steps;
+}
+function omKey2(a,b){return 'om:'+a+'|'+b;}
+function startManche(n){MA.limit=n;MA.tries=0;MA.good=0;go('ma');MA.done=0;MA.cur=null;maNext();mic($('errMa')).then(ok=>{if(ok){resetChroma();startLoop(maTick);}});}
+function runStep(x,isCtrl){
+  SESS.active=x.id;SESS.kind=x.kind;SESS.ctrl=!!isCtrl;SESS.lastScore=null;hideSessBar();
+  if(x.cfgO){SESS.saved={};for(const k in x.cfgO){SESS.saved[k]=cfg[k];cfg[k]=x.cfgO[k];}}
+  x.run();
+}
+function restoreCfg(){if(SESS.saved){Object.assign(cfg,SESS.saved);SESS.saved=null;saveCfg();}}
+function renderSession(){
+  const s=sessState(),steps=sessSteps(),dow=new Date().getDay(),T=THEMES[dow];$('seStreak').textContent='🔥 '+streak();
+  const J=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'][dow];
+  const need=steps.filter(x=>!x.bonus).length,doneN=steps.filter(x=>!x.bonus&&s.done.includes(x.id)).length,goal=Math.min(4,need);
+  let h=`<div class="card" style="background:linear-gradient(135deg,#3a2a0c,#1e2129)"><div style="font-size:13px;color:var(--mut)">${J} · thème du jour</div><b style="font-size:22px">${T[0]} ${T[1]}</b><div class="hint" style="margin:4px 0 0">${T[2]}</div></div>`;
+  if(ctrlDue()) h+=`<button class="tile" data-go="ctrl" style="border:2px solid var(--acc)"><span class="ic">📝</span><div><b>Contrôle de la semaine</b><span>${ctrlState().done&&Object.keys(ctrlState().done).length?'En cours : '+Object.keys(ctrlState().done).length+' / 5':'≈ 12 min · ton bulletin avec des notes sur 20'}</span></div></button>`;
+  else{const H=store.get('ctrlH',[]);if(H.length)h+=`<button class="tile" data-go="ctrl"><span class="ic">📝</span><div><b>Ton dernier bulletin : ${H[H.length-1].avg}/20</b><span>Prochain contrôle dimanche · priorité : ${AREAS[H[H.length-1].focus][1]}</span></div></button>`;}
+  h+=steps.map((x,i)=>{const d=s.done.includes(x.id),sc=s.scores[x.id];return `<div class="card" style="display:flex;align-items:center;gap:12px;${d?'opacity:.65':''}${x.bonus?';border:1px dashed #5a4214':''}"><span style="font-size:28px">${d?'✅':x.ic}</span><div style="flex:1"><b>${x.bonus?'':(i+1)+'. '}${esc(x.fr)}</b><div class="hint" style="margin:2px 0 0">${esc(x.sub)}${d&&sc!=null?' · <b style="color:var(--ok)">'+sc+(x.kind==='om'?' changements':' %')+'</b>':''}</div></div>
+    <button class="pill" data-run="${x.id}" style="background:${d?'var(--card2)':'var(--acc)'};color:${d?'var(--txt)':'#1a1200'};font-weight:800">${d?'Refaire':'▶ Go'}</button></div>`;}).join('');
+  h+=`<p class="hint" style="text-align:center">${doneN} / ${need} étapes · ${doneN>=goal?'journée validée 🔥':'encore '+(goal-doneN)+' pour valider la journée'} · ⭐ = bonus</p>`;
+  $('sessList').innerHTML=h;
+  $('sessList').querySelectorAll('[data-run]').forEach(b=>b.onclick=()=>runStep(steps.find(y=>y.id===b.dataset.run),false));
+}
+/* appelé à la fin de chaque exercice : si c'est l'étape lancée depuis la séance (ou le contrôle), on la coche */
+function sessDone(kind,silent){
+  if(!SESS.active||SESS.kind!==kind) return;
+  const id=SESS.active,score=SESS.lastScore;SESS.active=null;restoreCfg();
+  if(SESS.ctrl){ctrlRecord(id,score);if(!silent){const fin=!Object.keys(ctrlState().done||{}).length;$('sessBarTxt').textContent=fin?'🎉 Contrôle fini !':'✓ Épreuve terminée !';$('sessBack').textContent=fin?'Voir mon bulletin 📝':'Continuer le contrôle ›';$('sessBack').onclick=()=>{hideSessBar();go('ctrl');};$('sessBar').style.display='flex';}return;}
+  const s=sessState();if(!s.done.includes(id))s.done.push(id);if(score!=null)s.scores[id]=score;store.set('sess',s);
+  const steps=sessSteps(),need=steps.filter(x=>!x.bonus).length,doneN=steps.filter(x=>!x.bonus&&s.done.includes(x.id)).length;
+  if(doneN>=Math.min(4,need)){const D=store.get('sessDays',[]);if(!D.includes(s.d)){D.push(s.d);store.set('sessDays',D.slice(-400));}}
+  if(!silent){$('sessBarTxt').textContent='✓ Étape terminée !';$('sessBack').textContent='Continuer la séance ›';$('sessBack').onclick=()=>{hideSessBar();go('session');};$('sessBar').style.display='flex';}
+}
+function hideSessBar(){$('sessBar').style.display='none';}
+$('sessBack').onclick=()=>{hideSessBar();go('session');};$('sessHide').onclick=hideSessBar;
+
+/* ====================== CONTRÔLE DE LA SEMAINE ====================== */
+const AREAS={acc:['🎯','Accords (de mémoire)'],om:['🔁','Changements en 1 min'],ry:['✋','Rythmique'],ma:['🗺️','Le manche'],ear:['👂','Oreille']};
+function ctrlState(){return store.get('ctrl',{done:{}});}
+function ctrlDue(){const H=store.get('ctrlH',[]),last=H[H.length-1],cs=ctrlState();
+  if(cs.d&&Object.keys(cs.done||{}).length) return true;
+  const since=last?(Date.now()-new Date(last.d).getTime())/864e5:99;return new Date().getDay()===0?(!last||last.d!==today()):since>=7;}
+function ctrlFocusDuo(){const H=store.get('ctrlH',[]),last=H[H.length-1];return last&&last.duo?last.duo:worstDuo();}
+function ctrlSteps(){
+  const duo=ctrlFocusDuo(),wk=weekChords();
+  return [
+    {id:'acc',kind:'rev',fr:'10 accords de mémoire',sub:'Schéma caché, sévérité Normale. Regarder l\'aide = faute',cfgO:{diagMode:1,nameMode:0,sev:1},run:()=>startMemory(wk,10)},
+    {id:'om',kind:'om',fr:'Changements 1 min : '+cn(duo[0])+' ↔ '+cn(duo[1]),sub:'Le même duo d\'une semaine sur l\'autre',run:()=>startOneMin(duo[0],duo[1])},
+    {id:'ry',kind:'ry',fr:'Rythmique : « Le classique » à 70 BPM',sub:'8 mesures, toujours au même tempo pour comparer',run:()=>{RY.bpm=70;RY.bars=8;startRhythm(2);}},
+    {id:'ma',kind:'ma',fr:'Le manche : 10 notes',sub:'Notes naturelles, toutes les cordes. « Montre » = faute',run:()=>startManche(10)},
+    {id:'ear',kind:'ear',fr:'Oreille : majeur ou mineur ?',sub:'10 questions',run:()=>{cfg.ear=Object.assign({},cfg.ear,{t:2,ans:0});startEar();}},
+  ];
+}
+function ctrlRecord(id,score){const cs=ctrlState();if(!cs.d)cs.d=today();cs.done=cs.done||{};cs.done[id]=score==null?0:score;cs.duo=cs.duo||ctrlFocusDuo();store.set('ctrl',cs);
+  if(Object.keys(cs.done).length>=5) ctrlFinish();}
+function grade(id,v){if(v==null)return null;if(id==='om')return Math.min(20,Math.round(v/2*2)/2);return Math.round(v/5*2)/2;}
+function ctrlFinish(){
+  const cs=ctrlState(),g={};for(const k in AREAS)g[k]=grade(k,cs.done[k]);
+  const avg=Math.round(Object.values(g).reduce((a,b)=>a+b,0)/5*10)/10;
+  const focus=Object.entries(g).sort((a,b)=>a[1]-b[1])[0][0];
+  const H=store.get('ctrlH',[]);H.push({d:today(),g,raw:cs.done,avg,focus,duo:cs.duo});store.set('ctrlH',H.slice(-60));store.set('ctrl',{done:{}});
+  setRec('ctrl','Meilleure moyenne au contrôle',avg,'/20');
+}
+function weekSummary(){const L=store.get('log',{});let sec=0,dd=0,ok=0,ko=0;for(let o=0;o<7;o++){const v=L[today(o)];if(v){sec+=v.sec||0;if((v.sec||0)>=60)dd++;ok+=v.ok||0;ko+=v.ko||0;}}
+  const S=store.get('sessDays',[]).filter(d=>d>=today(6)).length;return {min:Math.round(sec/60),days:dd,pc:ok+ko?Math.round(ok/(ok+ko)*100):0,sess:S};}
+function comment(id,g,prev){
+  const d=prev==null?null:g-prev;const n=AREAS[id][1];
+  if(d!=null&&d>=3) return '🚀 '+n+' : énorme progrès (+'+d+') !';
+  if(d!=null&&d>=1) return '📈 '+n+' : en progrès (+'+d+'), bien joué.';
+  if(d!=null&&d<=-1.5) return '📉 '+n+' : en baisse ('+d+'), on s\'y remet cette semaine.';
+  if(g>=17) return '🌟 '+n+' : excellent, tu maîtrises.';
+  if(g>=13) return '👍 '+n+' : solide, continue.';
+  if(g>=9) return '🙂 '+n+' : ça vient, encore un peu de travail.';
+  return '💪 '+n+' : c\'est ton chantier de la semaine.';
+}
+function renderCtrl(){
+  const cs=ctrlState(),H=store.get('ctrlH',[]),steps=ctrlSteps(),W=weekSummary();
+  const finishedToday=!Object.keys(cs.done||{}).length&&H.length&&H[H.length-1].d===today();
+  let h='';
+  if(finishedToday||(!ctrlDue()&&H.length)){h+=bulletin(H[H.length-1],H[H.length-2],H);$('ctrlBody').innerHTML=h;return;}
+  h+=card('📊 Ta semaine',`<div style="display:flex;flex-wrap:wrap;gap:8px">${tile(W.min+' min','de jeu')}${tile(W.days+' / 7','jours joués')}${tile(W.sess,'séances validées 🔥')}${tile(W.pc+' %','de réussite')}</div>`,'Le contrôle : 5 épreuves, toujours les mêmes, pour comparer d\'une semaine sur l\'autre. Note sur 20 à chaque épreuve.');
+  h+=steps.map((x,i)=>{const v=(cs.done||{})[x.id],d=v!=null;return `<div class="card" style="display:flex;align-items:center;gap:12px;${d?'opacity:.65':''}"><span style="font-size:28px">${d?'✅':AREAS[x.id][0]}</span><div style="flex:1"><b>${i+1}. ${esc(x.fr)}</b><div class="hint" style="margin:2px 0 0">${esc(x.sub)}${d?' · <b style="color:var(--ok)">'+grade(x.id,v)+'/20</b>':''}</div></div>
+    ${d?'':`<button class="pill" data-cr="${x.id}" style="background:var(--acc);color:#1a1200;font-weight:800">▶ Go</button>`}</div>`;}).join('');
+  $('ctrlBody').innerHTML=h;
+  $('ctrlBody').querySelectorAll('[data-cr]').forEach(b=>b.onclick=()=>runStep(steps.find(y=>y.id===b.dataset.cr),true));
+}
+function bulletin(r,p,H){
+  if(!r) return '';
+  let h=`<div class="card" style="text-align:center;background:linear-gradient(135deg,#1c3a2a,#1e2129)"><div class="hint" style="margin:0">Bulletin du ${fmtD(r.d)}</div><div style="font-size:56px;font-weight:900">${r.avg}<span style="font-size:24px;color:var(--mut)">/20</span></div>
+    ${p?`<div style="font-size:15px">${r.avg>=p.avg?'▲ +':'▼ '}${Math.round((r.avg-p.avg)*10)/10} par rapport au contrôle d'avant</div>`:'<div class="hint" style="margin:0">Ton tout premier contrôle 🎉</div>'}</div>`;
+  h+=card('📝 Tes notes',Object.keys(AREAS).map(k=>{const g=r.g[k],pg=p?p.g[k]:null,col=g>=14?VZ.ok:g>=10?'#f5a524':VZ.ko;
+    return `<div style="display:flex;align-items:center;gap:10px;margin:9px 0"><span style="font-size:20px">${AREAS[k][0]}</span><span style="flex:1;font-size:14px">${AREAS[k][1]}</span><b style="font-size:20px;color:${col}">${g}</b><span style="color:var(--mut);font-size:12px;width:52px;text-align:right">${pg==null?'':(g>pg?'▲ +'+(g-pg):g<pg?'▼ '+(g-pg):'=')}</span></div>`;}).join(''));
+  h+=card('💬 L\'avis du prof (l\'app)',Object.keys(AREAS).map(k=>`<p style="margin:6px 0;font-size:14px">${comment(k,r.g[k],p?p.g[k]:null)}</p>`).join('')+
+    `<p style="margin:10px 0 0;font-size:14px"><b>Cette semaine, ta priorité : ${AREAS[r.focus][0]} ${AREAS[r.focus][1]}.</b> Je l'ajoute à chaque séance du jour jusqu'au prochain contrôle.</p>`);
+  if(H.length>1) h+=card('📈 Tes moyennes au fil des contrôles',lines([{name:'Moyenne',c:VZ.blue,pts:H.slice(-12).map((x,i)=>({x:i,y:x.avg,tip:`<b>${fmtD(x.d)}</b><br>${x.avg}/20`}))}],{ymin:0,ymax:20}));
+  h+=`<p class="hint" style="text-align:center">Prochain contrôle : ${new Date().getDay()===0?'dimanche prochain':'dimanche'} (ou dans 7 jours).</p>`;
   return h;
 }
 
