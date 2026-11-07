@@ -123,7 +123,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.5</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.6</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -132,7 +132,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 
 <!-- HUB -->
 <section class="screen" id="s-hub">
-  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.5</span><button class="pill" id="switchInst">Changer</button></header>
+  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.6</span><button class="pill" id="switchInst">Changer</button></header>
   <button class="tile" data-go="session" style="background:linear-gradient(135deg,#3a2a0c,#1e2129);border:1px solid #5a4214"><span class="ic">📅</span><div><b>Séance du jour</b><span id="hubStreak">10–15 min, je te guide étape par étape</span></div></button>
   <details class="grp" data-g="play" open><summary>🎸 Jouer</summary>
     <button class="tile" data-go="practiceSetup"><span class="ic">🎯</span><div><b>Accords – entraînement</b><span>Tu joues, ça passe au suivant quand c'est bon</span></div></button>
@@ -156,7 +156,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
     <button class="tile" data-go="tuner"><span class="ic">🎚️</span><div><b>Accordeur</b><span id="hubTun">À faire en premier, sinon rien n'est reconnu</span></div></button>
     <button class="tile" data-go="finder"><span class="ic">🔍</span><div><b>Trouve mon accord</b><span>Touche le manche comme tes doigts : je te dis quel accord c'est</span></div></button>
     <button class="tile" data-go="dict"><span class="ic">📖</span><div><b>Dictionnaire d'accords</b><span>180 accords à voir, écouter, ajouter à ta liste</span></div></button>
-    <button class="tile" data-go="progress"><span class="ic">📈</span><div><b>Mes progrès</b><span>Jours d'affilée, temps de jeu, records</span></div></button>
+    <button class="tile" data-go="progress"><span class="ic">📈</span><div><b>Mes stats</b><span>Courbes, calendrier, accords, manche, tempos, oreille</span></div></button>
     <button class="tile" data-go="settings"><span class="ic">⚙️</span><div><b>Réglages &amp; sauvegarde</b><span>Accordage, gaucher, sévérité, sauvegarder mes données</span></div></button>
   </details>
   <p class="hint" id="weakLine"></p>
@@ -473,11 +473,10 @@ details.grp:not([open])>summary::after{content:' ▸';}
 
 <!-- MES PROGRES -->
 <section class="screen" id="s-progress">
-  <header><button class="back" data-go="hub">‹</button><h1>Mes progrès</h1></header>
-  <div class="score"><div class="g"><b id="prStreak">0</b>jours d'affilée 🔥</div><div><b id="prWeek">0</b>min cette semaine</div></div>
-  <div class="card"><p class="lbl">Temps de jeu (14 derniers jours)</p><div id="prChart"></div></div>
-  <div class="card"><p class="lbl">🏆 Mes records</p><div id="prRec"></div></div>
-  <div class="card"><p class="lbl">À travailler (accords)</p><div id="prWeak" class="reslist"></div></div>
+  <header><button class="back" data-go="hub">‹</button><h1>Mes stats</h1></header>
+  <div class="seg" id="stTab" style="margin-bottom:12px"><button data-v="g">Global</button><button data-v="c">Accords</button><button data-v="t">Tempos</button><button data-v="m">Manche</button><button data-v="e">Oreille</button></div>
+  <div id="stBody"></div>
+  <div id="vizTip" style="position:fixed;z-index:60;pointer-events:none;display:none;background:#0d0f13;color:var(--txt);border:1px solid #3a404c;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.35;max-width:220px;box-shadow:0 6px 18px rgba(0,0,0,.5)"></div>
 </section>
 
 <!-- EDITEUR DE TAB -->
@@ -710,7 +709,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 </div>
 <script>
 'use strict';
-const VERSION='v5.5';
+const VERSION='v5.6';
 document.addEventListener('DOMContentLoaded',()=>{});
 
 /* ===================== DONNÉES ===================== */
@@ -1504,6 +1503,7 @@ function finishChrono(){
   const C=chrono;stopLoops();
   if(C.listen){go('songEdit');return;}
   if(C.cur>=0&&C.cur<C.seq.length) addStat(C.seq[C.cur].key,C.hit[C.cur]);
+  {const okc=C.hit.filter(Boolean).length;evPush('chrono',{pc:Math.round(okc/C.seq.length*100),n:C.seq.length,bpm:Math.round(60/C.beat),song:C.song?C.song.name:null});}
   const rv=chronoRev,sg=C.song;showResults(C.seq,C.hit,()=>startChrono(rv,sg));
 }
 function showResults(seq,hit,again){
@@ -1854,7 +1854,7 @@ function seqTick(ts){
 function seqFinish(ts){
   stopLoops();SQ.stop=true;
   const n=SQ.g.notes.length,ok=SQ.hits.filter(x=>x===true).length;
-  logAdd('ok',ok);logAdd('ko',n-ok);if(SQ.mode&&ok/n>=0.9)setRec('seq:'+SQ.title+':'+SQ.npb,SQ.title+(SQ.npb>1?' ('+SQ.npb+' notes/temps)':''),SQ.bpm,' BPM');
+  logAdd('ok',ok);logAdd('ko',n-ok);if(SQ.mode)evPush('tempo',{k:'seq:'+SQ.title+':'+SQ.npb,l:SQ.title+(SQ.npb>1?' ('+SQ.npb+' notes/temps)':''),v:SQ.bpm,u:' BPM',pc:Math.round(ok/n*100)});if(SQ.mode&&ok/n>=0.9)setRec('seq:'+SQ.title+':'+SQ.npb,SQ.title+(SQ.npb>1?' ('+SQ.npb+' notes/temps)':''),SQ.bpm,' BPM');
   setTimeout(()=>sessDone('warm'),50);
   SQ.idx=n;seqRender();
   $('qRes').style.display='';$('qOk').textContent=ok;$('qKo').textContent=n-ok;
@@ -2085,6 +2085,7 @@ function tpTick(ts){
 }
 function tpFinish(ts){
   stopLoops();TP.stop=true;const n=TP.ev.length,ok=TP.hits.filter(x=>x===true).length;logAdd('ok',ok);logAdd('ko',n-ok);
+  if(TP.mode)evPush('tempo',{k:'tab:'+TB.name,l:'Tab « '+TB.name+' »',v:cfg.tb_.spd,u:' %',pc:Math.round(ok/n*100)});
   if(TP.mode&&ok/n>=0.9)setRec('tab:'+TB.name,'Tab « '+TB.name+' » à',cfg.tb_.spd,' % de la vitesse');TP.idx=n-1;tpRender();
   $('tpRes').style.display='';$('tpBtns').style.display='none';$('tpOk').textContent=ok;$('tpKo').textContent=n-ok;const pc=Math.round(ok/n*100);
   if(!TP.mode){$('tpResTxt').textContent='Fini en '+((ts-TP.startTs)/1000).toFixed(1).replace('.',',')+' s. Quand ça roule, passe en mode Tempo.';$('tpFaster').style.display='none';}
@@ -2251,7 +2252,7 @@ function earTick(ts){
   else{$('eaFb').textContent='J\'entends '+nName(det.midi)+'… pas tout à fait';$('eaFb').style.color='var(--ko)';}
 }
 function earFinish(){
-  stopLoops();logAdd('ok',EAR.good);logAdd('ko',EAR.total-EAR.good);setRec('ear:'+EAR.st.t,'Oreille – '+['notes','accords','majeur/mineur','intervalles'][EAR.st.t]+' (sur 10)',EAR.good,'/10');setTimeout(()=>sessDone('ear'),50);$('eaCard').style.display='none';$('eaRes').style.display='';
+  stopLoops();logAdd('ok',EAR.good);logAdd('ko',EAR.total-EAR.good);evPush('ear',{t:EAR.st.t,v:EAR.good});setRec('ear:'+EAR.st.t,'Oreille – '+['notes','accords','majeur/mineur','intervalles'][EAR.st.t]+' (sur 10)',EAR.good,'/10');setTimeout(()=>sessDone('ear'),50);$('eaCard').style.display='none';$('eaRes').style.display='';
   $('eaOk').textContent=EAR.good;$('eaKo').textContent=EAR.total-EAR.good;
   $('eaList').innerHTML=EAR.hist.map(([a,ok])=>`<span class="chip ${ok?'g':'r'}">${esc(a)} ${ok?'✓':'✗'}</span>`).join('');
 }
@@ -2511,6 +2512,7 @@ function omTick(ts){
 }
 function omFinish(){
   stopLoops();$('omTime').textContent='0';
+  evPush('om',{k:omKey(),l:OM.ca.n+' ↔ '+OM.cb.n,v:OM.count});
   const rec=setRec(omKey(),'Changements '+OM.ca.n+' ↔ '+OM.cb.n,OM.count,' en 1 min');
   $('omRes').style.display='';$('omResTxt').innerHTML=(rec&&OM.count?'🏆 Nouveau record ! ':'')+'<b>'+OM.count+'</b> changements propres en 1 minute';
   ding();sessDone('om');
@@ -2639,28 +2641,12 @@ function ryFinish(){
   $('ryRes').style.display='';$('ryOk').textContent=ok.length;$('ryKo').textContent=n-ok.length;
   $('ryResTxt').innerHTML=pc+'% des coups dans le temps · '+RY.extra+' coup(s) en trop<br>'+'<small>(délai du micro compensé : '+Math.round(RY.lat*1000)+' ms)</small><br>'+(Math.abs(avg)<20?'Tu es bien calé sur le métronome 👌':avg<0?'Tendance : un peu <b>en avance</b> ('+(-avg)+' ms en moyenne)':'Tendance : un peu <b>en retard</b> ('+avg+' ms en moyenne)');
   $('ryFaster').style.display=pc>=90&&RY.extra<=2?'':'none';$('ryFaster').textContent='Rejouer à '+Math.min(200,RY.bpm+5)+' BPM';
+  evPush('tempo',{k:'ry:'+RY.p,l:'Rythmique « '+RYP[RY.p].fr+' »',v:RY.bpm,u:' BPM',pc});
   if(pc>=90) setRec('ry:'+RY.p,'Rythmique « '+RYP[RY.p].fr+' » réussie à',RY.bpm,' BPM');
   logAdd('ok',ok.length);logAdd('ko',n-ok.length);ding();sessDone('ry');
 }
 
 /* ====================== MES PROGRÈS ====================== */
-function renderProgress(){
-  $('prStreak').textContent=streak();
-  const L=store.get('log',{});let wk=0;for(let o=0;o<7;o++){const d=L[today(o)];if(d)wk+=d.sec||0;}$('prWeek').textContent=Math.round(wk/60);
-  const days=[...Array(14).keys()].reverse().map(o=>({d:today(o),v:L[today(o)]||{sec:0,ok:0,ko:0}}));
-  const mx=Math.max(5,...days.map(x=>(x.v.sec||0)/60));const W=340,H=150,bw=W/14;
-  let g=`<svg viewBox="0 0 ${W} ${H+30}" style="width:100%">`;
-  days.forEach((x,i)=>{const m=(x.v.sec||0)/60,h=m/mx*H,tot=(x.v.ok||0)+(x.v.ko||0),pc=tot?Math.round(x.v.ok/tot*100):null;
-    g+=`<rect x="${i*bw+4}" y="${H-h}" width="${bw-8}" height="${Math.max(h,1)}" rx="4" fill="${dayOk(x.d)?'#f5a524':'#4a505d'}"/>`;
-    if(m>=1) g+=`<text x="${i*bw+bw/2}" y="${H-h-4}" text-anchor="middle" font-size="9" fill="#eef0f4">${Math.round(m)}</text>`;
-    if(pc!=null) g+=`<text x="${i*bw+bw/2}" y="${H+12}" text-anchor="middle" font-size="8" fill="${pc>=80?'#34c77b':pc>=50?'#f5a524':'#ef5350'}">${pc}%</text>`;
-    g+=`<text x="${i*bw+bw/2}" y="${H+25}" text-anchor="middle" font-size="9" fill="#6c7383">${x.d.slice(8)}</text>`;});
-  $('prChart').innerHTML=g+'</svg><p class="hint">Barres = minutes jouées (orange = journée validée 🔥). En dessous : % de réussite du jour.</p>';
-  const R=store.get('rec',{});const rk=Object.values(R).sort((a,b)=>b.d.localeCompare(a.d));
-  $('prRec').innerHTML=rk.length?rk.map(r=>`<div style="display:flex;justify-content:space-between;margin:6px 0;gap:8px"><span>${esc(r.l)}</span><b style="color:var(--acc);white-space:nowrap">${r.v}${esc(r.u)}</b></div>`).join(''):'<p class="hint">Pas encore de record : fais des changements en 1 min, de la rythmique ou des gammes en mode tempo.</p>';
-  const st=stats();const wk2=Object.entries(st).map(([k,v])=>[k,v.ok/(v.ok+v.ko||1),v]).filter(x=>x[2].ok+x[2].ko>=2).sort((a,b)=>a[1]-b[1]).slice(0,5);
-  $('prWeak').innerHTML=wk2.length?wk2.map(([k,p])=>{const c=chordDict(cfg.inst)[k];return `<span class="chip ${p>=0.8?'g':'r'}" style="margin:3px">${c?c.n:k} ${Math.round(p*100)}%</span>`;}).join(''):'<p class="hint">Joue quelques accords pour voir ici tes points faibles.</p>';
-}
 
 /* ====================== SÉANCE DU JOUR ====================== */
 const SESS={active:null};
@@ -2862,6 +2848,169 @@ $('tsMic').onclick=async()=>{if(await mic(null)){$('tsMic').style.display='none'
   sh.addEventListener('touchstart',e=>{if(e.target.closest('button'))return;y0=e.touches[0].clientY;dy=0;sh.style.transition='none';},{passive:true});
   sh.addEventListener('touchmove',e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform='translateY('+dy+'px)';},{passive:true});
   sh.addEventListener('touchend',()=>{if(y0==null)return;sh.style.transition='transform .3s';if(dy>90)closeTuneSheet(true);else sh.style.transform='translateY(0)';y0=null;});})();
+
+/* ===================================================================
+   V5.6 — STATS DÉTAILLÉES (courbes, calendrier, par module, par accord, manche, tempos, oreille)
+   =================================================================== */
+/* ---------- collecte en plus ---------- */
+const MODOF={practice:'Accords',chrono:'Chrono',om:'1 minute',ry:'Rythmique',revision:'Accords',ma:'Manche',seq:'Gammes / arpèges',tabPlay:'Tabs',ear:'Oreille',tuner:'Accordeur'};
+let modBuf={};
+setInterval(()=>{if(loopFn&&A.an&&!document.hidden){const k=MODOF[current]||'Autre';modBuf[k]=(modBuf[k]||0)+1;
+  if(Object.values(modBuf).reduce((a,b)=>a+b,0)>=10){const L=store.get('log',{}),d=today();L[d]=L[d]||{ok:0,ko:0,sec:0};L[d].mod=L[d].mod||{};for(const x in modBuf)L[d].mod[x]=(L[d].mod[x]||0)+modBuf[x];store.set('log',L);modBuf={};}}},1000);
+function histAdd(key,ok,ms){const k='hist_'+cfg.inst,H=store.get(k,{}),d=today();H[d]=H[d]||{};const v=H[d][key]||[0,0,0,0];v[ok?0:1]++;if(ok&&ms){v[2]+=ms;v[3]++;}H[d][key]=v;
+  const ds=Object.keys(H).sort();while(ds.length>120)delete H[ds.shift()];store.set(k,H);}
+const _addStat2=addStat;addStat=function(k,ok,ms){_addStat2(k,ok,ms);histAdd(k,ok,ms);};
+function evPush(name,o){const k='ev_'+name,L=store.get(k,[]);L.push(Object.assign({d:today(),ts:Date.now()},o));store.set(k,L.slice(-300));}
+
+/* ---------- petits outils de dessin ---------- */
+const VZ={blue:'#3987e5',orange:'#d95926',aqua:'#199e70',yellow:'#c98500',grid:'#2e333e',axis:'#6c7383',ink:'#eef0f4',ink2:'#9aa1b0',ok:'#34c77b',ko:'#ef5350'};
+const SERIES=[VZ.blue,VZ.orange,VZ.aqua,VZ.yellow];
+const SEQ=['#2a3140','#184f95','#1c5cab','#2a78d6','#5598e7','#86b6ef']; // vide → beaucoup
+function fmtD(d){return d.slice(8)+'/'+d.slice(5,7);}
+function days(n){return [...Array(n).keys()].reverse().map(o=>today(o));}
+function tile(v,l,sub){return `<div style="flex:1;min-width:46%;background:var(--card2);border-radius:14px;padding:12px"><div style="font-size:26px;font-weight:800">${v}</div><div style="font-size:13px;color:var(--mut)">${l}</div>${sub?`<div style="font-size:12px;color:var(--mut);margin-top:2px">${sub}</div>`:''}</div>`;}
+function card(title,body,note){return `<div class="card"><p class="lbl">${title}</p>${body}${note?`<p class="hint" style="margin-bottom:0">${note}</p>`:''}</div>`;}
+function empty(t){return `<p class="hint" style="text-align:center;padding:16px 0">${t}</p>`;}
+/* barres verticales (une série) */
+function vBars(items,o){ // items [{x,v,tip,mark}]
+  const W=340,H=o.h||140,L=28,B=22,T=10,n=items.length,bw=(W-L)/n,mx=Math.max(o.min||1,...items.map(i=>i.v));
+  let g=`<svg viewBox="0 0 ${W} ${H}" style="width:100%">`;
+  [0,0.5,1].forEach(f=>{const y=T+(H-T-B)*(1-f);g+=`<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="${VZ.grid}" stroke-width="1"/><text x="${L-4}" y="${y+3}" text-anchor="end" font-size="9" fill="${VZ.axis}">${Math.round(mx*f)}</text>`;});
+  items.forEach((it,i)=>{const h=(H-T-B)*it.v/mx,x=L+i*bw+1,w=Math.max(2,bw-2),y=H-B-h;
+    if(it.v>0) g+=`<path d="M${x},${H-B} V${y+Math.min(4,h)} Q${x},${y} ${x+Math.min(4,w/2)},${y} H${x+w-Math.min(4,w/2)} Q${x+w},${y} ${x+w},${y+Math.min(4,h)} V${H-B} Z" fill="${it.c||VZ.blue}"/>`;
+    g+=`<rect x="${L+i*bw}" y="${T}" width="${bw}" height="${H-T-B+B}" fill="transparent" data-tip="${esc(it.tip)}"/>`;
+    if(it.mark) g+=`<text x="${x+w/2}" y="${y-3}" text-anchor="middle" font-size="9">🔥</text>`;
+    if(o.every&&i%o.every===0) g+=`<text x="${x+w/2}" y="${H-7}" text-anchor="middle" font-size="9" fill="${VZ.axis}">${it.x}</text>`;});
+  return g+'</svg>';
+}
+/* courbes (1 à 4 séries) */
+function lines(series,o){ // series [{name,c,pts:[{x(0..1 or index),y,tip,filled}]}]
+  const W=340,H=o.h||150,L=30,R=8,B=22,T=10;const all=series.flatMap(s=>s.pts);if(!all.length) return empty(o.empty||'Pas encore de données');
+  let mn=o.ymin!=null?o.ymin:Math.min(...all.map(p=>p.y)),mx=o.ymax!=null?o.ymax:Math.max(...all.map(p=>p.y));if(mx===mn){mx+=1;mn-=1;}
+  const xs=all.map(p=>p.x),x0=Math.min(...xs),x1=Math.max(...xs)||1;
+  const X=x=>L+(x1===x0?0.5:(x-x0)/(x1-x0))*(W-L-R),Y=y=>T+(H-T-B)*(1-(y-mn)/(mx-mn));
+  let g=`<svg viewBox="0 0 ${W} ${H}" style="width:100%">`;
+  [0,0.5,1].forEach(f=>{const v=mn+(mx-mn)*f,y=Y(v);g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="${VZ.grid}"/><text x="${L-4}" y="${y+3}" text-anchor="end" font-size="9" fill="${VZ.axis}">${Math.round(v)}${o.unit||''}</text>`;});
+  (o.xlabels||[]).forEach(([x,l])=>{g+=`<text x="${X(x)}" y="${H-7}" text-anchor="middle" font-size="9" fill="${VZ.axis}">${l}</text>`;});
+  series.forEach(s=>{const P=s.pts.slice().sort((a,b)=>a.x-b.x);if(P.length>1)g+=`<polyline points="${P.map(p=>X(p.x)+','+Y(p.y)).join(' ')}" fill="none" stroke="${s.c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    P.forEach(p=>{g+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="4" fill="${p.filled===false?'#1e2129':s.c}" stroke="${s.c}" stroke-width="2"/><circle cx="${X(p.x)}" cy="${Y(p.y)}" r="12" fill="transparent" data-tip="${esc((series.length>1?s.name+' · ':'')+p.tip)}"/>`;});});
+  g+='</svg>';
+  if(series.length>1) g+=`<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mut);margin-top:4px">${series.map(s=>`<span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${s.c};margin-right:4px"></span>${esc(s.name)}</span>`).join('')}</div>`;
+  return g;
+}
+/* minis courbes (sparkline) */
+function spark(vals,c){const v=vals.map(x=>x==null?null:x);const pts=v.map((y,i)=>y==null?null:[i,y]).filter(Boolean);if(pts.length<1)return '';
+  const W=70,H=20,X=i=>2+i/(Math.max(1,v.length-1))*(W-4),Y=y=>H-2-(y/100)*(H-4);
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${pts.length>1?`<polyline points="${pts.map(([i,y])=>X(i)+','+Y(y)).join(' ')}" fill="none" stroke="${c}" stroke-width="1.5"/>`:''}${pts.map(([i,y])=>`<circle cx="${X(i)}" cy="${Y(y)}" r="1.8" fill="${c}"/>`).join('')}</svg>`;}
+/* bulle d'info au toucher */
+(function(){const host=document.getElementById('s-progress');
+  const show=e=>{const t=e.target.closest('[data-tip]');const tip=$('vizTip');if(!t){tip.style.display='none';return;}
+    tip.innerHTML=t.getAttribute('data-tip');tip.style.display='block';const x=Math.min(window.innerWidth-230,Math.max(8,e.clientX-60)),y=Math.max(8,e.clientY-70);tip.style.left=x+'px';tip.style.top=y+'px';};
+  host.addEventListener('pointerdown',show);host.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'||e.buttons)show(e);});
+  document.addEventListener('scroll',()=>{$('vizTip').style.display='none';},true);})();
+
+/* ---------- onglets ---------- */
+let STAB='g';
+function renderProgress(){segInit('stTab',STAB,v=>{STAB=v;renderProgress();});$('vizTip').style.display='none';
+  $('stBody').innerHTML=({g:stGlobal,c:stChords,t:stTempos,m:stManche,e:stEar}[STAB])();}
+
+function stGlobal(){
+  const L=store.get('log',{}),all=Object.entries(L);
+  const totSec=all.reduce((a,[,v])=>a+(v.sec||0),0),totOk=all.reduce((a,[,v])=>a+(v.ok||0),0),totKo=all.reduce((a,[,v])=>a+(v.ko||0),0);
+  const daysPlayed=all.filter(([,v])=>(v.sec||0)>=60).length;
+  const wk=o=>{let s=0;for(let i=o;i<o+7;i++){const v=L[today(i)];if(v)s+=v.sec||0;}return s/60;};
+  const w0=wk(0),w1=wk(7),diff=w1?Math.round((w0-w1)/w1*100):null;
+  let best=null;all.forEach(([d,v])=>{if(!best||(v.sec||0)>best[1])best=[d,v.sec||0];});
+  let h=`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">${tile('🔥 '+streak(),'jours d\'affilée')}${tile(Math.round(totSec/60)+' min','de jeu au total',daysPlayed+' jours joués')}${tile(Math.round(w0)+' min','cette semaine',diff==null?'':(diff>=0?'▲ +':'▼ ')+diff+' % vs la semaine d\'avant')}${tile((totOk+totKo?Math.round(totOk/(totOk+totKo)*100):0)+' %','de réussite globale',(totOk+totKo)+' essais')}</div>`;
+  const D=days(30);
+  h+=card('⏱️ Minutes jouées (30 jours)',vBars(D.map(d=>{const v=L[d]||{};const m=Math.round((v.sec||0)/6)/10;return {x:fmtD(d),v:m,mark:dayOk(d),tip:`<b>${fmtD(d)}</b><br>${m} min${dayOk(d)?' · journée validée 🔥':''}<br>${(v.ok||0)} réussis · ${(v.ko||0)} ratés`};}),{every:5,min:5}),
+    best&&best[1]?'Ta plus grosse journée : '+fmtD(best[0])+' ('+Math.round(best[1]/60)+' min). Touche une barre pour le détail.':'Touche une barre pour le détail.');
+  const pct=D.map((d,i)=>{const v=L[d];const t=v?(v.ok||0)+(v.ko||0):0;return t>=3?{x:i,y:Math.round(v.ok/t*100),tip:`<b>${fmtD(d)}</b><br>${Math.round(v.ok/t*100)} % (${t} essais)`}:null;}).filter(Boolean);
+  h+=card('🎯 Réussite par jour (%)',lines([{name:'Réussite',c:VZ.aqua,pts:pct}],{ymin:0,ymax:100,unit:'%',xlabels:[[0,fmtD(D[0])],[29,fmtD(D[29])]],empty:'Joue quelques jours pour voir ta courbe'}),'Seulement les jours avec au moins 3 essais.');
+  // calendrier 12 semaines
+  const weeks=12,start=new Date(Date.now()-((weeks*7-1)+((new Date().getDay()+6)%7))*864e5);
+  let cal='<div style="display:grid;grid-template-columns:22px repeat('+weeks+',1fr);gap:3px;font-size:9px;color:var(--mut)">';
+  ['L','M','M','J','V','S','D'].forEach((dn,r)=>{cal+=`<span>${dn}</span>`;for(let w=0;w<weeks;w++){const dt=new Date(start.getTime()+(w*7+r)*864e5);const d=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    const m=((L[d]||{}).sec||0)/60,lv=m<=0?0:m<5?1:m<15?2:m<30?3:m<60?4:5;const fut=dt>new Date();
+    cal+=`<div data-tip="<b>${fmtD(d)}</b><br>${Math.round(m)} min${dayOk(d)?' 🔥':''}" style="aspect-ratio:1;border-radius:3px;background:${fut?'transparent':SEQ[lv]};${dayOk(d)?'outline:1.5px solid #f5a524':''}"></div>`;}});
+  cal+='</div><div style="display:flex;gap:4px;align-items:center;font-size:11px;color:var(--mut);margin-top:6px">moins '+SEQ.map(c=>`<span style="width:12px;height:12px;border-radius:3px;background:${c};display:inline-block"></span>`).join('')+' plus · <span style="outline:1.5px solid #f5a524;width:10px;height:10px;display:inline-block;border-radius:2px"></span> journée validée</div>';
+  h+=card('📅 Calendrier (12 semaines)',cal);
+  // temps par module (30 jours)
+  const mod={};D.forEach(d=>{const m=(L[d]||{}).mod||{};for(const k in m)mod[k]=(mod[k]||0)+m[k];});
+  const ms=Object.entries(mod).sort((a,b)=>b[1]-a[1]),mxm=ms.length?ms[0][1]:1,tot=ms.reduce((a,b)=>a+b[1],0);
+  h+=card('🧩 Où passe ton temps (30 jours)',ms.length?ms.map(([k,v])=>`<div data-tip="<b>${esc(k)}</b><br>${Math.round(v/60)} min · ${Math.round(v/tot*100)} %" style="display:flex;align-items:center;gap:8px;margin:7px 0"><span style="width:108px;font-size:13px">${esc(k)}</span><div style="flex:1;height:12px;background:var(--card2);border-radius:6px;overflow:hidden"><div style="width:${v/mxm*100}%;height:100%;background:${VZ.blue};border-radius:6px"></div></div><span style="width:58px;text-align:right;font-size:12px;color:var(--mut)">${Math.round(v/60)} min</span></div>`).join(''):empty('Ça se remplit à partir d\'aujourd\'hui (v5.6).'));
+  // records
+  const R=Object.values(store.get('rec',{})).sort((a,b)=>b.d.localeCompare(a.d));
+  h+=card('🏆 Mes records',R.length?R.map(r=>`<div style="display:flex;justify-content:space-between;margin:6px 0;gap:8px"><span style="font-size:14px">${esc(r.l)} <small style="color:var(--mut)">${fmtD(r.d)}</small></span><b style="color:var(--acc);white-space:nowrap">${r.v}${esc(r.u)}</b></div>`).join(''):empty('Pas encore de record.'));
+  return h;
+}
+
+function stChords(){
+  const st=stats(),H=store.get('hist_'+cfg.inst,{}),D=days(14),Dict=chordDict(cfg.inst);
+  const rows=Object.entries(st).filter(([k])=>Dict[k]).map(([k,v])=>{const n=v.ok+v.ko;return {k,c:Dict[k],n,pc:Math.round(v.ok/n*100),avg:v.tn?v.t/v.tn/1000:null,
+    sp:D.map(d=>{const x=(H[d]||{})[k];return x&&x[0]+x[1]?Math.round(x[0]/(x[0]+x[1])*100):null;})};}).sort((a,b)=>a.pc-b.pc||b.n-a.n);
+  if(!rows.length) return card('Accords',empty('Joue quelques accords (entraînement, chrono, 1 minute…) pour voir tes stats ici.'));
+  let h='';
+  // temps moyen pour trouver un accord, par jour
+  const pts=D.map((d,i)=>{const day=H[d]||{};let t=0,n=0;for(const k in day){t+=day[k][2];n+=day[k][3];}return n?{x:i,y:Math.round(t/n/100)/10,tip:`<b>${fmtD(d)}</b><br>${(t/n/1000).toFixed(1)} s en moyenne (${n} accords)`}:null;}).filter(Boolean);
+  h+=card('⚡ Temps moyen pour trouver un accord (s)',lines([{name:'Temps',c:VZ.orange,pts}],{ymin:0,unit:'s',xlabels:[[0,fmtD(D[0])],[13,fmtD(D[13])]],empty:'La courbe démarre à partir d\'aujourd\'hui (v5.6).'}),'Plus la courbe descend, plus tu trouves vite tes accords.');
+  // réussite par accord (barres horizontales) + détail
+  h+=card('🎸 Tous mes accords (du plus dur au plus facile)',
+    `<div style="display:grid;grid-template-columns:58px 1fr 44px 70px;gap:6px 8px;align-items:center;font-size:13px">
+     <span class="hint" style="margin:0">Accord</span><span class="hint" style="margin:0">Réussite</span><span class="hint" style="margin:0;text-align:right">Temps</span><span class="hint" style="margin:0">14 jours</span>`+
+    rows.map(r=>{const col=r.pc>=80?VZ.ok:r.pc>=50?'#f5a524':VZ.ko;return `<b data-tip="<b>${esc(r.c.n)}</b> · ${esc(r.c.fr)}<br>${r.pc} % de réussite sur ${r.n} essais${r.avg?'<br>'+r.avg.toFixed(1)+' s en moyenne':''}" style="font-size:15px">${esc(r.c.n)}</b>
+      <div style="height:12px;background:var(--card2);border-radius:6px;overflow:hidden" data-tip="${r.pc} % sur ${r.n} essais"><div style="width:${r.pc}%;height:100%;background:${col};border-radius:6px"></div></div>
+      <span style="text-align:right;color:var(--mut)">${r.avg?r.avg.toFixed(1)+'s':'–'}</span><span>${spark(r.sp,VZ.blue)||'<span class="hint" style="margin:0">–</span>'}</span>`;}).join('')+'</div>',
+    'Couleur = réussite (vert ≥ 80 %, orange ≥ 50 %, rouge en dessous). Touche un accord pour le détail.');
+  const strong=rows.filter(r=>r.n>=3).sort((a,b)=>b.pc-a.pc||(a.avg||9)-(b.avg||9)).slice(0,3),weak=rows.filter(r=>r.n>=3).slice(0,3);
+  h+=card('💪 Tes points forts / à bosser',`<p class="hint" style="margin:0 0 4px">Les plus solides</p><div class="reslist">${strong.map(r=>`<span class="chip g">${esc(r.c.n)} ${r.pc}%</span>`).join('')||'–'}</div><p class="hint" style="margin:10px 0 4px">À bosser en priorité</p><div class="reslist">${weak.map(r=>`<span class="chip r">${esc(r.c.n)} ${r.pc}%</span>`).join('')||'–'}</div>`);
+  // résultats des chronos
+  const CH=store.get('ev_chrono',[]);
+  h+=card('⏱️ Mes chronos (score %)',lines([{name:'Chrono',c:VZ.aqua,pts:CH.slice(-30).map((e,i)=>({x:i,y:e.pc,tip:`<b>${fmtD(e.d)}</b><br>${e.pc} % · ${e.n} accords à ${e.bpm} BPM`}))}],{ymin:0,ymax:100,unit:'%',empty:'Fais un chrono pour voir ta courbe.'}));
+  return h;
+}
+
+function stTempos(){
+  let h='';const T=store.get('ev_tempo',[]);
+  const by={};T.forEach(e=>{(by[e.k]=by[e.k]||{l:e.l,u:e.u,pts:[]}).pts.push(e);});
+  const keys=Object.keys(by).sort((a,b)=>by[b].pts.length-by[a].pts.length);
+  if(!keys.length) h+=card('🚀 Mes tempos',empty('Joue en mode Tempo (gammes, arpèges, sweep, tabs) ou en rythmique : chaque essai s\'ajoute ici.'));
+  keys.slice(0,8).forEach(k=>{const s=by[k],best=Math.max(...s.pts.filter(p=>p.pc>=90).map(p=>p.v),0);
+    h+=card('🚀 '+esc(s.l),lines([{name:s.l,c:VZ.blue,pts:s.pts.slice(-25).map((p,i)=>({x:i,y:p.v,filled:p.pc>=90,tip:`<b>${fmtD(p.d)}</b><br>${p.v}${esc(s.u)} · ${p.pc} %${p.pc>=90?' ✓ réussi':''}`}))}],{unit:'',empty:''}),
+      'Point plein = réussi (≥ 90 %), point vide = pas encore. '+(best?'Meilleur tempo réussi : <b>'+best+esc(s.u)+'</b>.':''));});
+  const O=store.get('ev_om',[]);const byO={};O.forEach(e=>{(byO[e.k]=byO[e.k]||{l:e.l,pts:[]}).pts.push(e);});
+  const ok=Object.keys(byO).slice(0,4);
+  h+=card('🔁 Changements en 1 minute',ok.length?lines(ok.map((k,i)=>({name:byO[k].l,c:SERIES[i%4],pts:byO[k].pts.slice(-20).map((p,j)=>({x:j,y:p.v,tip:`<b>${fmtD(p.d)}</b><br>${p.v} changements`}))})),{ymin:0}):empty('Fais des changements en 1 minute pour voir ta progression.'),ok.length?'Une couleur par duo d\'accords.':'');
+  return h;
+}
+
+function stManche(){
+  const N=nstats(),inst=I(),n=inst.open.length;let tried=0;
+  const dots=[];inst.open.forEach((o,s)=>{for(let f=0;f<=12;f++){const pc=(o+f)%12,v=N[s+'-'+pc];if(!v)continue;tried++;const t=v.ok+v.ko,p=Math.round(v.ok/t*100);
+    dots.push({s,f,p,t});}});
+  if(!dots.length) return card('🗺️ Le manche',empty('Fais l\'exercice « Le manche » pour voir ici la carte de ce que tu connais.'));
+  const W=358,L=34,Rm=8,top=14,sh=n===6?26:32,H=top+sh*(n-1)+40,cw=(W-L-Rm)/13,X=f=>L+(f+0.5)*cw,Y=s=>top+(n-1-s)*sh;
+  const col=p=>p>=80?VZ.ok:p>=50?'#f5a524':VZ.ko;
+  let g=`<svg viewBox="0 0 ${W} ${H}" style="width:100%">`;
+  for(let f=1;f<=13;f++)g+=`<line x1="${L+f*cw}" y1="${top-4}" x2="${L+f*cw}" y2="${top+sh*(n-1)+4}" stroke="${f===1?'#e8e2d0':'#4a505d'}" stroke-width="${f===1?4:1.5}"/>`;
+  for(let s=0;s<n;s++)g+=`<line x1="${L}" y1="${Y(s)}" x2="${W-Rm}" y2="${Y(s)}" stroke="#aab0bd" stroke-width="1"/><text x="${L-8}" y="${Y(s)+4}" text-anchor="end" font-size="11" fill="${VZ.ink2}">${inst.strNames[s]}</text>`;
+  for(let f=0;f<=12;f++)g+=`<text x="${X(f)}" y="${H-12}" text-anchor="middle" font-size="10" fill="${VZ.axis}">${f}</text>`;
+  dots.forEach(d=>{g+=`<circle cx="${X(d.f)}" cy="${Y(d.s)}" r="10" fill="${col(d.p)}" stroke="#1e2129" stroke-width="2"/><text x="${X(d.f)}" y="${Y(d.s)+3}" text-anchor="middle" font-size="8" font-weight="800" fill="#111">${PC_EN[(inst.open[d.s]+d.f)%12]}</text>
+    <circle cx="${X(d.f)}" cy="${Y(d.s)}" r="13" fill="transparent" data-tip="<b>${PC_FR[(inst.open[d.s]+d.f)%12]}</b> sur la corde ${esc(strFull(d.s))} (case ${d.f})<br>${d.p} % · ${d.t} essais"/>`;});
+  g+='</svg>';
+  const per=inst.open.map((o,s)=>{let ok=0,t=0;for(let pc=0;pc<12;pc++){const v=N[s+'-'+pc];if(v){ok+=v.ok;t+=v.ok+v.ko;}}return {s,p:t?Math.round(ok/t*100):null,t};});
+  return card('🗺️ Ma carte du manche',g,'Vert = tu la connais (≥ 80 %), orange = presque, rouge = à revoir. Les cases sans rond n\'ont pas encore été demandées.')+
+    card('🎸 Par corde',per.slice().reverse().map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:7px 0"><span style="width:84px;font-size:13px">${esc(strFull(x.s))}</span><div style="flex:1;height:12px;background:var(--card2);border-radius:6px;overflow:hidden"><div style="width:${x.p||0}%;height:100%;background:${x.p==null?'transparent':col(x.p)}"></div></div><span style="width:70px;text-align:right;font-size:12px;color:var(--mut)">${x.p==null?'–':x.p+' % ('+x.t+')'}</span></div>`).join(''));
+}
+
+function stEar(){
+  const E=store.get('ev_ear',[]);const names=['Notes','Accords','Majeur/mineur','Intervalles'];
+  const series=names.map((nm,t)=>({name:nm,c:SERIES[t],pts:E.filter(e=>e.t===t).slice(-20).map((e,i)=>({x:i,y:e.v*10,tip:`<b>${fmtD(e.d)}</b><br>${e.v}/10`}))})).filter(s=>s.pts.length);
+  let h=card('👂 Mes scores d\'oreille (%)',series.length?lines(series,{ymin:0,ymax:100,unit:'%'}):empty('Fais des exercices d\'oreille pour voir ta progression.'),series.length?'Une couleur par exercice, de ton plus ancien essai (à gauche) au plus récent.':'');
+  const R=store.get('rec',{});
+  h+=card('🏆 Meilleurs scores',`<div style="display:flex;flex-wrap:wrap;gap:8px">${names.map((nm,t)=>tile(R['ear:'+t]?R['ear:'+t].v+'/10':'–',nm)).join('')}</div>`);
+  return h;
+}
 
 /* ===================== DÉMARRAGE ===================== */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&A.ctx&&A.ctx.state!=='running')A.ctx.resume();});
