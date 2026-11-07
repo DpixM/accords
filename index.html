@@ -114,6 +114,7 @@ details.grp>summary{list-style:none;cursor:pointer;font-weight:800;font-size:15p
 details.grp>summary::-webkit-details-marker{display:none}
 details.grp>summary::after{content:' ▾';}
 details.grp:not([open])>summary::after{content:' ▸';}
+.strings div.tok{background:var(--ok);color:#04210f}
 .err{background:rgba(239,83,80,.15);color:#ffb3b1;border-radius:12px;padding:12px;margin:10px 0;display:none;font-size:15px;line-height:1.4}
 </style>
 </head>
@@ -122,7 +123,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.4</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.5</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -131,7 +132,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 
 <!-- HUB -->
 <section class="screen" id="s-hub">
-  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.4</span><button class="pill" id="switchInst">Changer</button></header>
+  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.5</span><button class="pill" id="switchInst">Changer</button></header>
   <button class="tile" data-go="session" style="background:linear-gradient(135deg,#3a2a0c,#1e2129);border:1px solid #5a4214"><span class="ic">📅</span><div><b>Séance du jour</b><span id="hubStreak">10–15 min, je te guide étape par étape</span></div></button>
   <details class="grp" data-g="play" open><summary>🎸 Jouer</summary>
     <button class="tile" data-go="practiceSetup"><span class="ic">🎯</span><div><b>Accords – entraînement</b><span>Tu joues, ça passe au suivant quand c'est bon</span></div></button>
@@ -513,6 +514,17 @@ details.grp:not([open])>summary::after{content:' ▸';}
   </div>
 </section>
 
+<div id="tuneSheet" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:47;background:var(--card);border-radius:22px 22px 0 0;padding:10px 16px calc(env(safe-area-inset-bottom) + 16px);box-shadow:0 -8px 30px rgba(0,0,0,.6);max-width:560px;margin:0 auto;transform:translateY(110%)">
+  <div style="width:44px;height:5px;border-radius:3px;background:#4a505d;margin:0 auto 10px"></div>
+  <b style="font-size:18px">🎚️ Petite vérif d'accordage</b>
+  <p class="hint" style="margin:4px 0 6px">Tu joues depuis <b id="tsMin">40</b> min : les cordes bougent avec le temps. Joue chaque corde à vide jusqu'au vert. Glisse vers le bas pour fermer.</p>
+  <div class="tnote" id="tsNote" style="font-size:48px">–</div>
+  <div class="gauge" style="margin:10px 0 4px"><div class="scale"></div><div class="mid"></div><div class="ndl" id="tsNdl"></div></div>
+  <div class="tcents" id="tsMsg"></div>
+  <div class="strings" id="tsStr" style="margin-top:8px"></div>
+  <button class="big" id="tsMic" style="display:none">🎤 Lancer l'accordeur</button>
+  <div class="row" style="margin-top:6px"><button class="big sec" id="tsLater" style="font-size:16px">Plus tard (10 min)</button><button class="big sec" id="tsDone" style="font-size:16px">✓ C'est accordé</button></div>
+</div>
 <!-- REGLAGES -->
 <section class="screen" id="s-settings">
   <header><button class="back" data-go="hub">‹</button><h1>Réglages</h1></header>
@@ -554,6 +566,11 @@ details.grp:not([open])>summary::after{content:' ▸';}
     <p class="hint" style="margin-top:8px">L'accordeur, la détection, les gammes, le manche et les tabs suivent ton accordage. Les schémas d'accords sont adaptés pour garder les bonnes notes.</p>
   </div>
   <div class="card">
+    <p class="lbl">⏰ Rappel d'accordage</p>
+    <div class="seg" id="setTuneEvery"><button data-v="0">Jamais</button><button data-v="30">30 min</button><button data-v="40">40 min</button><button data-v="60">1 h</button></div>
+    <p class="hint" style="margin-top:8px">Après ce temps de jeu, une petite fenêtre d'accordeur glisse du bas. Quand toutes les cordes sont vertes, elle repart toute seule et le minuteur repart à zéro.</p>
+  </div>
+  <div class="card">
     <p class="lbl">✋ Gaucher</p>
     <div class="seg" id="setLefty"><button data-v="0">Droitier</button><button data-v="1">Gaucher (schémas inversés)</button></div>
   </div>
@@ -575,7 +592,9 @@ details.grp:not([open])>summary::after{content:' ▸';}
     <div class="tcents" id="tCents"></div>
     <div class="meter"><i id="tMeter"></i><b></b></div><div class="diagline" id="dT"></div><div class="sens"><button data-sens="-1">−</button><span>Micro <b class="sensV">7</b>/10</span><button data-sens="1">+</button><button data-cal="1" title="Mesurer le bruit">🤫</button><button data-lock="1" class="lockB">🔓</button></div>
     <div class="strings" id="tStrings"></div>
+    <p class="status" id="tAll" style="margin-top:10px"></p>
   </div>
+  <button class="big sec" id="tDone">✓ C'est accordé</button>
   <p class="hint">Aiguille à gauche = trop grave (serre la corde). À droite = trop aigu (desserre). Au centre en vert = parfait.</p>
 </section>
 
@@ -691,7 +710,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 </div>
 <script>
 'use strict';
-const VERSION='v5.4';
+const VERSION='v5.5';
 document.addEventListener('DOMContentLoaded',()=>{});
 
 /* ===================== DONNÉES ===================== */
@@ -872,6 +891,7 @@ function renderSettings(){
   showSens();
   $('statInst').textContent=I().name;
   renderTuningChips('setTun');segInit('setLefty',cfg.lefty||0,v=>{cfg.lefty=+v;saveCfg();});
+  segInit('setTuneEvery',cfg.tuneEvery==null?40:cfg.tuneEvery,v=>{cfg.tuneEvery=+v;saveCfg();});
 }
 $('resetStats').onclick=()=>{store.set('stats_'+cfg.inst,{});$('resetStats').textContent='Stats effacées ✓';};
 
@@ -1104,7 +1124,7 @@ function chroma(){
   const db=A.fd,sr=A.ctx.sampleRate,N=A.an.fftSize,bh=sr/N;
   const lo=Math.floor(70/bh),hi=Math.ceil(1500/bh),W=Math.round(25/bh);
   let mx=-200;for(let i=lo;i<=hi;i++) if(db[i]>mx) mx=db[i];
-  const c=new Float32Array(12),nn=new Float32Array(128);
+  const c=new Float32Array(12),nn=new Float32Array(128),pk=[];
   // plancher local (moyenne glissante en dB)
   let sum=0,cnt=0;const fl=new Float32Array(hi+1);
   for(let i=lo-W;i<=lo+W;i++){if(i>=0){sum+=db[i];cnt++;}}
@@ -1115,7 +1135,7 @@ function chroma(){
     if(v<fl[i]+(14-cfg.sens)||v<mx-(34+cfg.sens)) continue;
     if(A.nspec&&i<A.nspec.length&&v<A.nspec[i]+(17-cfg.sens)) continue;
     const a=db[i-1],b=v,cc=db[i+1];const den=a-2*b+cc;const p=den?0.5*(a-cc)/den:0;
-    const f=(i+p)*bh;const m=69+12*Math.log2(f/440);const r=Math.round(m);
+    const f=(i+p)*bh;const m0=69+12*Math.log2(f/440);if(v>mx-15)pk.push(m0);const m=m0-(A.tOff||0);const r=Math.round(m);
     if(Math.abs(m-r)>0.35) continue;
     let w=Math.pow(10,(v-mx)/20); w=Math.pow(w,0.6);
     if(f>700) w*=700/f;
@@ -1123,6 +1143,9 @@ function chroma(){
     const rel=Math.pow(10,(v-mx)/20);if(r>=0&&r<128&&rel>nn[r]) nn[r]=rel;
   }
   for(let i=0;i<128;i++) noteSm[i]=noteSm[i]*0.5+nn[i]*0.5;
+  // guitare un peu désaccordée « en bloc » (toutes les cordes trop basses / hautes) : on compense doucement
+  if(pk.length>=4){const d=pk.map(m=>m-Math.round(m)).sort((a,b)=>a-b),med=d[Math.floor(d.length/2)];A.tOff=Math.max(-0.4,Math.min(0.4,(A.tOff||0)*0.9+med*0.1));}
+  A.pk=pk;
   let cm=0;for(const x of c) if(x>cm) cm=x;
   if(cm>0) for(let i=0;i<12;i++) c[i]/=cm;
   for(let i=0;i<12;i++) chSm[i]=chSm[i]*0.45+c[i]*0.55;
@@ -1237,35 +1260,27 @@ function yin(buf,sr){
 }
 let tunerF=0;
 async function startTuner(){
-  renderTuningChips('tTun');
+  renderTuningChips('tTun');tuReset();
   const inst=I();
-  $('tStrings').innerHTML=inst.open.map((m,i)=>`<div data-m="${m}">${inst.strNames[i]}</div>`).join('');
+  $('tStrings').innerHTML=tuStringsHtml();$('tAll').textContent='Joue chaque corde à vide : elle passe au vert quand elle est juste';$('tAll').style.color='';
   $('tNote').textContent='–';$('tFr').textContent='Joue une corde à vide';$('tCents').textContent='';
   if(!await mic($('errTuner'))) return;
-  let hist=[];
-  startLoop(()=>{
-    const db=levelDb();meter($('tMeter'),db);
-    if(calStep()){$('tCents').textContent='🤫 Ne joue pas… je mesure le bruit';return;}
-    const on=gate(db);diag('dT',db,on,null,tunerF?' · '+tunerF.toFixed(1)+' Hz':'');
-    if(!on){return;}
-    const buf=A.td.subarray(A.td.length-4096);
-    let f=yin(buf,A.ctx.sampleRate); tunerF=f; if(!f) return;
-    // correction d'octave grossière pour la guitare
-    hist.push(f);if(hist.length>5)hist.shift();
-    const sorted=[...hist].sort((a,b)=>a-b);f=sorted[Math.floor(sorted.length/2)];
-    const m=69+12*Math.log2(f/440);
-    // corde la plus proche
-    let bi=0,bd=99;inst.open.forEach((o,i)=>{const d=Math.abs(m-o);if(d<bd){bd=d;bi=i;}});
-    const r=Math.round(m),cents=Math.round((m-r)*100);
-    const pc=((r%12)+12)%12;
-    $('tNote').textContent=PC_EN[pc];
-    $('tFr').textContent=PC_FR[pc]+' · '+f.toFixed(1)+' Hz';
-    const target=inst.open[bi];const tc=Math.round((m-target)*100);
-    const showC=Math.abs(tc)<=300?tc:cents;
+  let fired=false;
+  startLoop(ts=>{
+    const r=tunerRead(ts);meter($('tMeter'),r.db);
+    if(r.cal){$('tCents').textContent='🤫 Ne joue pas… je mesure le bruit';return;}
+    diag('dT',r.db,!!r.on,null,tunerF?' · '+tunerF.toFixed(1)+' Hz':'');
+    if(r.bi==null) return;
+    const m=r.m,rr=Math.round(m),pc=((rr%12)+12)%12,cents=Math.round((m-rr)*100);
+    $('tNote').textContent=PC_EN[pc];$('tFr').textContent=PC_FR[pc]+' · '+r.f.toFixed(1)+' Hz';
+    const tc=r.tc,showC=Math.abs(tc)<=300?tc:cents;
     $('tNdl').style.left=(50+Math.max(-50,Math.min(50,showC/2)))+'%';
     $('tNdl').style.background=Math.abs(showC)<=5?'var(--ok)':'var(--acc)';
-    $('tCents').textContent=Math.abs(showC)<=5?'✓ Juste ('+inst.strNames[bi]+')':(showC<0?'▲ Serre un peu':'▼ Desserre un peu')+' ('+(showC>0?'+':'')+showC+' cents → '+inst.strNames[bi]+')';
-    document.querySelectorAll('#tStrings div').forEach((el,i)=>el.classList.toggle('on',i===bi&&Math.abs(tc)<=300));
+    $('tCents').textContent=Math.abs(showC)<=5?'✓ Juste ('+inst.strNames[r.bi]+')':(showC<0?'▲ Serre un peu':'▼ Desserre un peu')+' ('+(showC>0?'+':'')+showC+' cents → '+inst.strNames[r.bi]+')';
+    $('tStrings').innerHTML=tuStringsHtml();
+    const n=TU.ok.filter(Boolean).length;
+    if(tuAllOk()&&!fired){fired=true;ding();tuneDone();$('tAll').textContent='✅ '+(cfg.inst==='uke'?'Ukulélé':'Guitare')+' accordé'+(cfg.inst==='uke'?'':'e')+' ! Toutes les cordes sont justes';$('tAll').style.color='var(--ok)';}
+    else if(!fired){$('tAll').textContent=n+' / '+TU.ok.length+' cordes justes';}
   });
 }
 
@@ -1329,6 +1344,16 @@ function showPractice(){
   $('pNotes').innerHTML=hide?'':notesHtml(c);$('pStatus').textContent='J\'écoute… gratte l\'accord';$('pStatus').style.color='';
   $('pCount').textContent=P.rev?Math.min(P.seq.length+1,P.revN)+' / '+P.revN:P.done+' ✓';
 }
+/* une corde de l'accord sonne entre deux notes (trop basse/haute de 25 à 60 cents) → elle est sûrement désaccordée */
+function detuned(c){
+  if(!A.pk||!A.pk.length) return null;const off=A.tOff||0;let worst=null;
+  c.f.forEach((fr,i)=>{if(fr<0)return;const e=I().open[i]+fr;let best=null;
+    for(const m of A.pk){const d=(m-off)-e;if(Math.abs(d)<0.6&&(!best||Math.abs(d)<Math.abs(best)))best=d;}
+    if(best!=null&&Math.abs(best)>0.25&&(!worst||Math.abs(best)>Math.abs(worst.d)))worst={i,d:best,c:Math.round(best*100)};});
+  // il faut que ça dure (≈ 0,5 s) pour éviter les fausses alertes
+  if(worst){if(worst.i===A.dtKey)A.dtN=Math.min(40,(A.dtN||0)+1);else{A.dtKey=worst.i;A.dtN=1;}A.dtLast=worst;}else A.dtN=Math.max(0,(A.dtN||0)-0.5);
+  return A.dtN>=10&&A.dtLast?A.dtLast:null;
+}
 function chordLabel(c,idN,idF){
   const m=cfg.nameMode||0,N=$(idN),F=$(idF);
   if(m===2){N.textContent=c.fr.split(' · ')[0];N.style.fontSize=c.fr.length>11?'36px':'48px';F.textContent='';}
@@ -1359,14 +1384,17 @@ function practiceTick(ts){
     if(P.acc>SEV[cfg.sev].hold){P.acc=0;
       P.done++;addStat(P.cur.key,!P.helped,performance.now()-P.shownAt);P.seq.push(P.cur);P.hits.push(!P.helped);ding();
       if((cfg.diagMode||0)>0&&!P.helped){$('pDiag').innerHTML=diagram(P.cur);}
-      $('pStatus').textContent=P.helped?'✓ Bravo (avec l\'aide)':'✓ Bravo !';$('pCount').textContent=P.done+' ✓';
+      $('pStatus').textContent=P.helped?'✓ Bravo (avec l\'aide)':'✓ Bravo !';
+      {const dt=detuned(P.cur);if(dt)$('pStatus').textContent+=' · 🎚️ corde '+strFull(dt.i)+' un peu fausse';}$('pCount').textContent=P.done+' ✓';
       const card=$('pCard');card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
       P.lock=ts+900;
     }
   }else{
     P.hold=0;
     let msg;
-    if(res.missing.length) msg='Il manque : '+res.missing.map(p=>PC_FR[p]).join(', ');
+    const dtn=detuned(P.cur);
+    if(dtn) msg='🎚️ La corde '+strFull(dtn.i)+' a l\'air désaccordée ('+(dtn.c>0?'+':'')+dtn.c+' cents) : passe par l\'accordeur';
+    else if(res.missing.length) msg='Il manque : '+res.missing.map(p=>PC_FR[p]).join(', ');
     else if(res.wrong.length){const xs=P.cur.f.map((f,i)=>f<0&&res.wrong.some(m=>m===I().open[i]||m===I().open[i]+12)?i:-1).filter(i=>i>=0);
       msg=xs.length?'Ne gratte pas la corde '+xs.map(i=>strFull(i)).join(', ')+' (✕ sur le schéma)':'Fausse note : '+[...new Set(res.wrong.map(m=>PC_FR[m%12]))].join(', ')+' — vérifie tes doigts';}
     else if(res.extMiss.length) msg='Il manque '+res.extMiss.map(i=>PC_FR[(I().open[i]+P.cur.f[i])%12]+' (corde '+I().strNames[i]+')').join(', ');
@@ -2763,6 +2791,77 @@ $('fiSave').onclick=()=>{
   for(const k in CHCACHE)delete CHCACHE[k];
   $('fiSaved').textContent='✓ « '+x.name+' » ajouté à ⭐ Ma liste (entraînement, chrono, morceaux…)';
 };
+
+/* ===================================================================
+   V5.5 — accordeur qui valide chaque corde + rappel d'accordage (fenêtre qui glisse)
+   =================================================================== */
+const TU={hist:[],held:[],ok:[],lastTs:0};
+function tuReset(){const n=I().open.length;TU.hist=[];TU.held=new Array(n).fill(0);TU.ok=new Array(n).fill(false);TU.lastTs=0;}
+/* lit la note jouée et dit de combien elle est loin de la corde la plus proche */
+function tunerRead(ts){
+  const db=levelDb();const dt=TU.lastTs?Math.min(120,ts-TU.lastTs):50;TU.lastTs=ts;
+  if(calStep()) return {db,cal:true};
+  const on=gate(db);if(!on) return {db};
+  const buf=A.td.subarray(A.td.length-4096);let f=yin(buf,A.ctx.sampleRate);tunerF=f;if(!f) return {db,on};
+  TU.hist.push(f);if(TU.hist.length>5)TU.hist.shift();
+  const so=[...TU.hist].sort((a,b)=>a-b);f=so[Math.floor(so.length/2)];
+  const m=69+12*Math.log2(f/440),inst=I();
+  let bi=0,bd=99;inst.open.forEach((o,i)=>{const d=Math.abs(m-o);if(d<bd){bd=d;bi=i;}});
+  const tc=Math.round((m-inst.open[bi])*100);
+  if(Math.abs(tc)<=8){TU.held[bi]+=dt;if(TU.held[bi]>=600)TU.ok[bi]=true;}else if(Math.abs(tc)>14)TU.held[bi]=0;
+  return {db,on,f,m,bi,tc};
+}
+function tuAllOk(){return TU.ok.length&&TU.ok.every(Boolean);}
+function tuStringsHtml(){const inst=I();return inst.open.map((o,i)=>`<div class="${TU.ok[i]?'tok':''}">${TU.ok[i]?'✓ ':''}${inst.strNames[i]}</div>`).join('');}
+function tuneDone(){store.set('tuneSec',0);tuneSec=0;setTimeout(()=>sessDone('tune'),50);}
+let tuneSec=store.get('tuneSec',0),tuneSnooze=0;
+
+/* ---------- rappel ---------- */
+const TS={open:false,prev:null,own:false};
+function tuneSafe(){
+  if(TS.open||document.hidden) return false;
+  if(current==='chrono'||current==='ry'||current==='om'||current==='tuner'||current==='pick') return false;
+  if(current==='seq'&&SQ&&SQ.mode&&!SQ.stop) return false;
+  if(current==='tabPlay'&&TP&&TP.mode&&!TP.stop) return false;
+  if(current==='ear') return false;
+  return true;
+}
+setInterval(()=>{
+  if(loopFn&&A.an&&!document.hidden&&!TS.open&&current!=='tuner'){tuneSec++;if(tuneSec%10===0)store.set('tuneSec',tuneSec);}
+  const every=(cfg.tuneEvery==null?40:cfg.tuneEvery)*60;
+  if(every&&tuneSec>=every&&Date.now()>tuneSnooze&&tuneSafe()) openTuneSheet();
+},1000);
+function openTuneSheet(){
+  TS.open=true;tuReset();const sh=$('tuneSheet');sh.style.transition='transform .35s';sh.style.transform='translateY(0)';sh.style.display='block';
+  $('tsMin').textContent=Math.round(tuneSec/60);$('tsStr').innerHTML=tuStringsHtml();$('tsMsg').textContent='Joue chaque corde à vide, une par une';
+  $('tsMic').style.display=A.an?'none':'';
+  TS.prev=loopFn;TS.own=!loopFn;
+  if(A.an){if(TS.own)startLoop(tsTick);else loopFn=tsTick;}
+}
+function closeTuneSheet(reset,snoozeMin){
+  if(!TS.open)return;TS.open=false;const sh=$('tuneSheet');sh.style.transform='translateY(110%)';setTimeout(()=>{if(!TS.open)sh.style.display='none';},380);
+  if(reset){tuneDone();} if(snoozeMin) tuneSnooze=Date.now()+snoozeMin*60000;
+  NS.hist=[];resetChroma();
+  if(TS.own){stopLoops();}else if(TS.prev){loopFn=TS.prev;}
+  TS.prev=null;
+}
+function tsTick(ts){
+  const r=tunerRead(ts);if(r.cal){$('tsMsg').textContent='🤫 Une seconde…';return;}
+  if(r.bi!=null){const inst=I(),ok=Math.abs(r.tc)<=6;
+    $('tsNote').textContent=inst.strNames[r.bi];$('tsNdl').style.left=(50+Math.max(-50,Math.min(50,r.tc/2)))+'%';$('tsNdl').style.background=ok?'var(--ok)':'var(--acc)';
+    $('tsMsg').textContent=ok?'✓ Juste':(r.tc<0?'▲ Serre un peu':'▼ Desserre un peu')+' ('+(r.tc>0?'+':'')+r.tc+' cents)';}
+  $('tsStr').innerHTML=tuStringsHtml();
+  if(tuAllOk()){ding();$('tsMsg').textContent='✅ Tout est accordé !';setTimeout(()=>closeTuneSheet(true),700);TU.ok=[];}
+}
+$('tDone').onclick=()=>{tuneDone();$('tAll').textContent='✓ Noté !';$('tAll').style.color='var(--ok)';};
+$('tsLater').onclick=()=>closeTuneSheet(false,10);
+$('tsDone').onclick=()=>closeTuneSheet(true);
+$('tsMic').onclick=async()=>{if(await mic(null)){$('tsMic').style.display='none';if(TS.own)startLoop(tsTick);else loopFn=tsTick;}};
+// glisser vers le bas pour fermer (= relance le minuteur)
+(function(){const sh=$('tuneSheet');let y0=null,dy=0;
+  sh.addEventListener('touchstart',e=>{if(e.target.closest('button'))return;y0=e.touches[0].clientY;dy=0;sh.style.transition='none';},{passive:true});
+  sh.addEventListener('touchmove',e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform='translateY('+dy+'px)';},{passive:true});
+  sh.addEventListener('touchend',()=>{if(y0==null)return;sh.style.transition='transform .3s';if(dy>90)closeTuneSheet(true);else sh.style.transform='translateY(0)';y0=null;});})();
 
 /* ===================== DÉMARRAGE ===================== */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&A.ctx&&A.ctx.state!=='running')A.ctx.resume();});
