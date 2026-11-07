@@ -122,7 +122,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 <!-- CHOIX INSTRUMENT -->
 <div id="tapOv" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,11,15,.92);align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:30px">🎤<br>Touche l'écran<br>pour activer le micro</div>
 <section class="screen" id="s-pick">
-  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.3</span></header>
+  <header><h1>Avec quoi tu joues ?</h1><span class="ver">v5.4</span></header>
   <div class="pick">
     <button data-inst="guitar">🎸 Guitare<small>6 cordes · Mi La Ré Sol Si Mi</small></button>
     <button data-inst="uke">🪕 Ukulélé<small>4 cordes · Sol Do Mi La</small></button>
@@ -131,7 +131,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 
 <!-- HUB -->
 <section class="screen" id="s-hub">
-  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.3</span><button class="pill" id="switchInst">Changer</button></header>
+  <header><h1 id="hubTitle">🎸 Guitare</h1><span class="pill" id="verTop" style="background:var(--acc);color:#1a1200;font-weight:800">v5.4</span><button class="pill" id="switchInst">Changer</button></header>
   <button class="tile" data-go="session" style="background:linear-gradient(135deg,#3a2a0c,#1e2129);border:1px solid #5a4214"><span class="ic">📅</span><div><b>Séance du jour</b><span id="hubStreak">10–15 min, je te guide étape par étape</span></div></button>
   <details class="grp" data-g="play" open><summary>🎸 Jouer</summary>
     <button class="tile" data-go="practiceSetup"><span class="ic">🎯</span><div><b>Accords – entraînement</b><span>Tu joues, ça passe au suivant quand c'est bon</span></div></button>
@@ -691,7 +691,7 @@ details.grp:not([open])>summary::after{content:' ▸';}
 </div>
 <script>
 'use strict';
-const VERSION='v5.3';
+const VERSION='v5.4';
 document.addEventListener('DOMContentLoaded',()=>{});
 
 /* ===================== DONNÉES ===================== */
@@ -1139,16 +1139,20 @@ function judge(ch,target){
   const st=cos(ch,tmpl(target.pcs));
   const missing=target.req.filter(p=>ch[p]<P.req);
   // notes en trop : fortes, hors accord, et pas une harmonique (quinte) d'une note de l'accord
-  const harm=new Set();for(const p of target.pcs){harm.add(p);harm.add((p+7)%12);}
+  const harm=new Set();for(const p of target.pcs){harm.add(p);harm.add((p+7)%12);harm.add((p+4)%12);}
   const extra=[];for(let p=0;p<12;p++) if(!target.pcs.includes(p)&&ch[p]>0.5&&!harm.has(p)) extra.push(p);
   const strictExtra=P.extra?[...Array(12).keys()].filter(p=>!harm.has(p)&&ch[p]>P.extra):[];
   let ok=st>=P.sim&&missing.length===0;
   const same=best.pcs.length===target.pcs.length&&best.pcs.every(p=>target.pcs.includes(p));
   // un "7" ou "add9" en trop peut venir des harmoniques (le son d'une corde contient des notes plus aiguës) :
   // on l'accepte si cette note n'est jouée nulle part dans les graves/médiums
+  // notes de l'accord qui sonnent vraiment (cordes prévues + cordes à vide qui donnent une note de l'accord)
+  const snd=target.f.map((fr,i)=>fr<0?null:I().open[i]+fr).filter(x=>x!=null);
+  for(let m=36;m<=64;m++) if(noteSm[m]>0.04&&target.pcs.includes(m%12)&&!snd.includes(m)) snd.push(m);
+  const isHarm=m=>snd.some(e=>{for(let k=2;k<=8;k++) if(Math.abs(m-(e+12*Math.log2(k)))<0.5) return true;return false;});
   let near=false;
   if(!same&&best.pcs.length===target.pcs.length+1&&target.pcs.every(p=>best.pcs.includes(p))&&bs-st<0.05){
-    const x=best.pcs.find(p=>!target.pcs.includes(p));let low=0;for(let m=40;m<=64;m++) if(m%12===x&&noteSm[m]>low) low=noteSm[m];
+    const x=best.pcs.find(p=>!target.pcs.includes(p));let low=0;for(let m=40;m<=64;m++) if(m%12===x&&noteSm[m]>low&&!isHarm(m)) low=noteSm[m];
     near=low<0.08;
   }
   if(P.best&&!same&&!near) ok=false;
@@ -1156,6 +1160,9 @@ function judge(ch,target){
   // --- analyse note par note (avec l'octave), corde par corde ---
   const E=target.f.map((fr,i)=>fr<0?null:I().open[i]+fr);
   const exp=E.filter(x=>x!=null);
+  // une corde « ✕ » qui sonne quand même une note DE l'accord (ex : La à vide sur un Ré) : pas une faute,
+  // et ses harmoniques (Mi, Do#…) ne doivent pas être prises pour des fausses notes
+  for(const m of snd) if(!exp.includes(m)) exp.push(m);
   const strHeard=E.map(m=>m==null?null:(noteSm[m]>0.05||noteSm[m+12]>0.05&&m<48));
   const wrong=[];
   if(P.wrong) for(let m=38;m<=76;m++){
@@ -1360,7 +1367,8 @@ function practiceTick(ts){
     P.hold=0;
     let msg;
     if(res.missing.length) msg='Il manque : '+res.missing.map(p=>PC_FR[p]).join(', ');
-    else if(res.wrong.length) msg='Fausse note : '+[...new Set(res.wrong.map(m=>PC_FR[m%12]))].join(', ')+' — vérifie tes doigts';
+    else if(res.wrong.length){const xs=P.cur.f.map((f,i)=>f<0&&res.wrong.some(m=>m===I().open[i]||m===I().open[i]+12)?i:-1).filter(i=>i>=0);
+      msg=xs.length?'Ne gratte pas la corde '+xs.map(i=>strFull(i)).join(', ')+' (✕ sur le schéma)':'Fausse note : '+[...new Set(res.wrong.map(m=>PC_FR[m%12]))].join(', ')+' — vérifie tes doigts';}
     else if(res.extMiss.length) msg='Il manque '+res.extMiss.map(i=>PC_FR[(I().open[i]+P.cur.f[i])%12]+' (corde '+I().strNames[i]+')').join(', ');
     else if(res.deadStr.length) msg='Corde '+res.deadStr.map(i=>I().strNames[i]).join(', ')+' pas entendue (étouffée ?)';
     else if(res.extra.length) msg='Note en trop : '+res.extra.map(p=>PC_FR[p]).join(', ');
